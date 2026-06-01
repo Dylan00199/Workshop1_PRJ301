@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-private xmlns="http://www.netbeans.org/ns/project-private/1">
+    <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
+    <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
+        <group>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/addAccount.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/account.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Controller/CategoryController.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/listCategory.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Controller/AccountController.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Controller/ProductController.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/listProducts.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Model/dao/ProductDAO.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/navbar.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Model/Category.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/META-INF/web.xml</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Utilities/ConnectDB.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Utilities/ValidationUtils.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/updateAccount.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/index.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/View/Run.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Model/dao/AccountDAO.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Controller/loginController.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/addProduct.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/listAccount.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/META-INF/context.xml</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/login.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/updateProduct.jsp</file>
+        </group>
+    </open-files>
+</project-private>
