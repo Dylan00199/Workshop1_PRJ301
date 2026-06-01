@@ -286,11 +286,10 @@
             <p class="section-sub">Browse our latest products</p>
 
             <%
-                List<Product> products = (List<Product>) session.getAttribute("list");
+                List<Product> products = (List<Product>) request.getAttribute("list");
                 boolean hasProducts = products != null && !products.isEmpty();
                 if (request.getAttribute("list") == null) {
-                    request.getRequestDispatcher("ProductController?action=home")
-                            .forward(request, response);
+                    response.sendRedirect("ProductController?action=home");
                     return;
                 }
             %>
@@ -305,13 +304,13 @@
                 <div class="product-card" onclick="openModal(
                                 '<%= p.getProductName()%>',
                                 '<%= p.getType().getCategoryName()%>',
-                                '<%= p.getBrief()%>',
-                                '<%= p.getProductImage()%>',
-                                '<%= String.format("%,.0f ₫", p.getPrice() * (1 - p.getDiscount() / 100.0))%>',
-                                '<%= String.format("%,.0f ₫", p.getPrice())%>',
-                                '-<%= p.getDiscount()%>%',
+                                '<%= p.getBrief().replace("'", "\\'").replace("\r\n", " ").replace("\n", " ").replace("\r", " ")%>',
+                                '<%= request.getContextPath() + p.getProductImage()%>',
+                                '<%= String.format("%,.0f VND", p.getPrice() * (1 - p.getDiscount() / 100.0))%>',
+                                '<%= (p.getDiscount() > 0) ? String.format("%,d VND", p.getPrice()) : ""%>',
+                                '<%= (p.getDiscount() > 0) ? "-" + p.getDiscount() + "%" : ""%>',
                                 '<%= p.getPostedDate()%>')">
-                    <div class="card-img"><img src="<%= p.getProductImage()%>" alt="<%= p.getProductName()%>" onerror="this.parentElement.textContent='No image'"></div>
+                    <div class="card-img"><img src="<%= request.getContextPath() + p.getProductImage()%>" alt="<%= p.getProductName()%>" onerror="this.parentElement.textContent='No image'"></div>
                     <div class="card-body">
                         <div class="card-type"><%= p.getType().getCategoryName()%></div>
                         <div class="card-name"><%= p.getProductName()%></div>
@@ -319,9 +318,9 @@
                         <div class="card-footer">
                             <div>
                                 <% if (p.getDiscount() > 0) {%>
-                                <span class="card-original-price"><%= String.format("%,.0f ₫", p.getPrice())%></span>
+                                <span class="card-original-price"><%= String.format("%,d VND", p.getPrice())%></span>
                                 <% }%>
-                                <span class="card-price"><%= String.format("%,.0f ₫", p.getPrice() * (1 - p.getDiscount() / 100.0))%></span>
+                                <span class="card-price"><%= String.format("%,.0f VND", p.getPrice() * (1 - p.getDiscount() / 100.0))%></span>
                             </div>
                             <% if (p.getDiscount() > 0) {%>
                             <span class="card-discount">-<%= p.getDiscount()%>%</span>
@@ -362,9 +361,17 @@
                 document.getElementById('modalImg').src = img;
                 document.getElementById('modalImg').alt = name;
                 document.getElementById('modalPrice').textContent = price;
-                document.getElementById('modalOriginal').textContent = original || '';
-                document.getElementById('modalDiscount').textContent = discount || '';
-                document.getElementById('modalDiscount').style.display = discount ? 'inline' : 'none';
+
+                // Xử lý hiển thị Giá gốc
+                var originalElem = document.getElementById('modalOriginal');
+                originalElem.textContent = original;
+                originalElem.style.display = original ? 'inline' : 'none'; // Có giá gốc thì hiện, không thì ẩn
+
+                // Xử lý hiển thị Tag giảm giá
+                var discountElem = document.getElementById('modalDiscount');
+                discountElem.textContent = discount;
+                discountElem.style.display = discount ? 'inline' : 'none'; // Có giảm giá thì hiện, không thì ẩn
+
                 document.getElementById('modalPostdate').textContent = postdate;
                 document.getElementById('modalOverlay').classList.add('open');
                 document.body.style.overflow = 'hidden';

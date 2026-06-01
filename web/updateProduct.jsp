@@ -1,10 +1,16 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
-<%-- <%@ page import="model.Product" %> --%>
-<%-- <%@ page import="model.Category" %> --%>
+ <%@ page import="Model.Product" %> 
+ <%@ page import="Model.Category" %> 
 <%
-    // TODO: Product p = (Product) request.getAttribute("product");
-    // Pull values from request attributes set by servlet
+    Product p = (Product) request.getAttribute("product");
+    
+    String action = "updateProduct";
+    String id = (String) request.getAttribute("id");
+    request.setAttribute("action", action);
+    request.setAttribute("id", id);
+    request.getRequestDispatcher("ProductController").forward(request, response);
+    
     String prodId       = request.getParameter("id")           != null ? request.getParameter("id")                        : "";
     String prodName     = request.getAttribute("prodName")     != null ? (String)request.getAttribute("prodName")          : "";
     String prodCatId    = request.getAttribute("prodCatId")    != null ? String.valueOf(request.getAttribute("prodCatId")) : "";

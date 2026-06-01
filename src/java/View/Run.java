@@ -26,7 +26,7 @@ public class Run {
 
     public static void main(String[] args) {
         try {
-            List<Product> temp = ProductDAO.getInstance().listAll();
+            List<Product> temp = ProductDAO.getInstance().listSeconPage();
             for (Product p : temp) {
                 System.out.println(p.toString());
             }

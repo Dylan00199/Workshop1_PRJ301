@@ -1,7 +1,7 @@
 <%@page import="Model.Product"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
-<%-- <%@ page import="model.Product" %> --%>
+<%@ page import="Model.Product" %> 
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -37,45 +37,6 @@
             }
             .btn-add:hover {
                 background: #1e9050;
-            }
-
-            /* ===== FILTER BAR ===== */
-            .filter-bar {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                margin-bottom: 18px;
-                flex-wrap: wrap;
-            }
-            .filter-bar input[type="text"] {
-                padding: 6px 12px;
-                font-size: 13px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                width: 220px;
-                outline: none;
-            }
-            .filter-bar input[type="text"]:focus {
-                border-color: #2980b9;
-            }
-            .filter-bar select {
-                padding: 6px 10px;
-                font-size: 13px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                outline: none;
-                cursor: pointer;
-            }
-            .filter-bar button {
-                padding: 6px 16px;
-                font-size: 13px;
-                border: 1px solid #bbb;
-                border-radius: 5px;
-                background: #fff;
-                cursor: pointer;
-            }
-            .filter-bar button:hover {
-                background: #f0f0f0;
             }
 
             /* ===== TABLE ===== */
@@ -193,43 +154,6 @@
                 color: #aaa;
                 font-size: 14px;
             }
-
-            /* ===== PAGINATION ===== */
-            .pagination {
-                display: flex;
-                gap: 4px;
-                margin-top: 20px;
-                justify-content: flex-end;
-            }
-            .page-btn {
-                min-width: 32px;
-                height: 32px;
-                display: inline-flex;
-                align-items: center;
-                justify-content: center;
-                border: 1px solid #ddd;
-                border-radius: 4px;
-                font-size: 13px;
-                text-decoration: none;
-                color: #333;
-                background: #fff;
-                cursor: pointer;
-                padding: 0 8px;
-            }
-            .page-btn:hover {
-                background: #f0f0f0;
-            }
-            .page-btn.active {
-                background: #2980b9;
-                color: #fff;
-                border-color: #2980b9;
-            }
-            .page-btn.disabled {
-                color: #ccc;
-                cursor: default;
-                pointer-events: none;
-            }
-
             /* ===== PRODUCT NAME ===== */
             .product-name {
                 font-weight: 600;
@@ -256,23 +180,6 @@
                 <a href="addProduct.jsp" class="btn-add">+ Add product</a>
             </div>
 
-            <%-- ===== FILTER ===== --%>
-            <form class="filter-bar" method="GET" action="MainController">
-                <input type="hidden" name="action" value="listProduct">
-                <input type="text" name="keyword"
-                       placeholder="Search product name..."
-                       value="<%= request.getParameter("keyword") != null ? request.getParameter("keyword") : ""%>">
-                <select name="category">
-                    <option value="">All categories</option>
-                    <%-- TODO: loop categories from request attribute --%>
-                    <option value="1" <%= "1".equals(request.getParameter("category")) ? "selected" : ""%>>Electronics</option>
-                    <option value="2" <%= "2".equals(request.getParameter("category")) ? "selected" : ""%>>Outdoor &amp; Travel</option>
-                    <option value="3" <%= "3".equals(request.getParameter("category")) ? "selected" : ""%>>Clothing</option>
-                    <option value="4" <%= "4".equals(request.getParameter("category")) ? "selected" : ""%>>Sports &amp; Fitness</option>
-                </select>
-                <button type="submit">Search</button>
-                <a href="MainController?action=listProduct"><button type="button">Reset</button></a>
-            </form>
 
             <%-- ===== TABLE ===== --%>
             <%
@@ -319,9 +226,9 @@
                         </td>
                         <td><span class="badge-cat"><%= p.getType().getCategoryName()%></span></td>
                         <td class="price-cell">
-                            <%= String.format("%,.0f ₫", p.getPrice() * (1 - p.getDiscount() / 100.0))%>
+                            <%= String.format("%,.0f VND", p.getPrice() * (1 - p.getDiscount() / 100.0))%>
                             <% if (p.getDiscount() > 0) {%>
-                            <span class="price-original"><%= String.format("%,.0f ₫", p.getPrice())%></span>
+                            <span class="price-original"><%= String.format("%,d VND", p.getPrice())%></span>
                             <% } %>
                         </td>
                         <td>
@@ -331,8 +238,8 @@
                         </td>
                         <td><%= p.getPostedDate()%></td>
                         <td>
-                            <a href="MainController?action=updateProduct&id=<%= p.getProductId()%>" class="btn btn-update">Update</a>
-                            <a href="MainController?action=deleteProduct&id=<%= p.getProductId()%>"
+                            <a href="updateProduct.jsp" class="btn btn-update">Update</a>
+                            <a href="ProducController?action=deleteProduct&id=<%= p.getProductId()%>"
                                class="btn btn-delete"
                                onclick="return confirm('Delete product \"<%= p.getProductName()%>\"?')">Delete</a>
                         </td>
@@ -343,27 +250,6 @@
                     <% } %>
                 </tbody>
             </table>
-
-            <%-- ===== PAGINATION ===== --%>
-            <%
-                int currentPage = 1;
-                String p = request.getParameter("page");
-                if (p != null) try {
-                    currentPage = Integer.parseInt(p);
-                } catch (Exception ignored) {
-                }
-                int totalPages = 3;
-            %>
-            <div class="pagination">
-                <a href="?action=listProduct&page=<%= currentPage - 1%>"
-                   class="page-btn <%= currentPage <= 1 ? "disabled" : ""%>">&#8592;</a>
-                <% for (int i = 1; i <= totalPages; i++) {%>
-                <a href="?action=listProduct&page=<%= i%>"
-                   class="page-btn <%= i == currentPage ? "active" : ""%>"><%= i%></a>
-                <% }%>
-                <a href="?action=listProduct&page=<%= currentPage + 1%>"
-                   class="page-btn <%= currentPage >= totalPages ? "disabled" : ""%>">&#8594;</a>
-            </div>
         </div>
 
     </body>

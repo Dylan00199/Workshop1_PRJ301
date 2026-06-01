@@ -189,4 +189,78 @@ public class ProductDAO implements Accessible<Product> {
         return result;
     }
 
+    public List<Product> listFirstPage() {
+        List<Product> result = new ArrayList<Product>();
+        Connection c = ConnectDB.getConnection();
+
+        Statement st;
+        try {
+            st = c.createStatement();
+            String sql = "SELECT * FROM products ORDER BY productId ASC OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY";
+            ResultSet rs = st.executeQuery(sql);
+            while (rs.next()) {
+                String productId = rs.getString("productId");
+                String productName = rs.getString("productName");
+                String productImage = rs.getString("productImage");
+                String brief = rs.getString("brief");
+                Date postedDate = rs.getDate("postedDate");
+                //transfrom these to object
+                int CategoryID = rs.getInt("typeId");
+                String a = rs.getString("account");
+
+                Category type = CategoryDAO.getInstance().getObjectById(String.valueOf(CategoryID));
+                Account account = AccountDAO.getInstance().getObjectById(a);
+
+                //return Category and Account object
+                String unit = rs.getString("unit");
+                int price = rs.getInt("price");
+                int discount = rs.getInt("discount");
+
+                Product p = new Product(productId, productName, productImage, brief, postedDate, type, account, unit, price, discount);
+                result.add(p);
+            }
+            ConnectDB.closeConnection(c);
+        } catch (SQLException ex) {
+            Logger.getLogger(ProductDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
+    public List<Product> listSeconPage() {
+        List<Product> result = new ArrayList<Product>();
+        Connection c = ConnectDB.getConnection();
+
+        Statement st;
+        try {
+            st = c.createStatement();
+            String sql = "SELECT * FROM products ORDER BY productId ASC OFFSET 10 ROWS"; 
+            ResultSet rs = st.executeQuery(sql);
+            while (rs.next()) {
+                String productId = rs.getString("productId");
+                String productName = rs.getString("productName");
+                String productImage = rs.getString("productImage");
+                String brief = rs.getString("brief");
+                Date postedDate = rs.getDate("postedDate");
+                //transfrom these to object
+                int CategoryID = rs.getInt("typeId");
+                String a = rs.getString("account");
+
+                Category type = CategoryDAO.getInstance().getObjectById(String.valueOf(CategoryID));
+                Account account = AccountDAO.getInstance().getObjectById(a);
+
+                //return Category and Account object
+                String unit = rs.getString("unit");
+                int price = rs.getInt("price");
+                int discount = rs.getInt("discount");
+
+                Product p = new Product(productId, productName, productImage, brief, postedDate, type, account, unit, price, discount);
+                result.add(p);
+            }
+            ConnectDB.closeConnection(c);
+        } catch (SQLException ex) {
+            Logger.getLogger(ProductDAO.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return result;
+    }
+
 }

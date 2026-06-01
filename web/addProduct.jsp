@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
-<%-- <%@ page import="model.Category" %> --%>
+ <%@ page import="Model.Category" %> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -210,7 +210,7 @@
     <div class="error-msg"><%= errorMsg %></div>
     <% } %>
 
-    <form action="MainController" method="POST" enctype="multipart/form-data">
+    <form action="ProductController" method="POST" enctype="multipart/form-data">
         <input type="hidden" name="action" value="addProduct">
 
         <div class="form-layout">
@@ -231,15 +231,14 @@
                 <label>Category <span class="required">*</span></label>
                 <select name="categoryId">
                     <option value="">-- Select category --</option>
-                    <%--
-                    TODO: loop categories:
+                    <%
                     List<Category> cats = (List<Category>) request.getAttribute("categories");
                     if (cats != null) for (Category c : cats) { %>
-                    <option value="<%= c.getId() %>"
-                        <%= c.getId() == Integer.parseInt(request.getParameter("categoryId") != null ? request.getParameter("categoryId") : "0") ? "selected" : "" %>>
-                        <%= c.getName() %>
+                    <option value="<%= c.getTypeId()%>"
+                        <%= c.getTypeId()== Integer.parseInt(request.getParameter("categoryId") != null ? request.getParameter("categoryId") : "0") ? "selected" : "" %>>
+                        <%= c.getCategoryName()%>
                     </option>
-                    <% } --%>
+                    <% } %>
                     <option value="1">Electronics</option>
                     <option value="2">Outdoor &amp; Travel</option>
                     <option value="3">Clothing</option>
@@ -326,7 +325,7 @@
             <%-- ===== ACTIONS ===== --%>
             <div class="form-actions">
                 <button type="submit" class="btn-submit">Save product</button>
-                <a href="MainController?action=listProduct" class="btn-cancel">Cancel</a>
+                <a href="index.jsp" class="btn-cancel">Cancel</a>
             </div>
 
         </div><%-- end .form-layout --%>
