@@ -264,10 +264,6 @@
                                 <%= c.getCategoryName()%>
                             </option>
                             <% }%>
-                            <option value="1">Electronics</option>
-                            <option value="2">Outdoor &amp; Travel</option>
-                            <option value="3">Clothing</option>
-                            <option value="4">Sports &amp; Fitness</option>
                         </select>
                     </div>
 

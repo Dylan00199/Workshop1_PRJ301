@@ -8,6 +8,7 @@ import Model.Account;
 import Model.Category;
 import Model.Product;
 import Model.dao.ProductDAO;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
@@ -18,6 +19,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import javax.servlet.http.Part;
 
 /**
  *
@@ -35,7 +37,6 @@ public class ProductController extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try ( PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
@@ -56,19 +57,13 @@ public class ProductController extends HttpServlet {
         if (action == null || action.isEmpty()) {
             action = "";
         }
-        int page = 1;
         switch (action) {
             case "listProduct":
                 List<Product> list = ProductDAO.getInstance().listAll();
                 request.setAttribute("list", list);
                 request.getRequestDispatcher("listProducts.jsp").forward(request, response);
                 break;
-            case "updateProduct":
-                String id = request.getParameter("id");
-                Product temp = ProductDAO.getInstance().getObjectById(id);
-                ProductDAO.getInstance().updateRec(temp);
-                response.sendRedirect("index.jsp");
-                break;
+
             case "deleteProduct":
                 String delId = request.getParameter("id");
                 if (delId == null || delId.isEmpty()) {
@@ -76,13 +71,15 @@ public class ProductController extends HttpServlet {
                 }
                 Product del = ProductDAO.getInstance().getObjectById(delId);
                 ProductDAO.getInstance().deleteRec(del);
-                response.sendRedirect("listProduct.jsp");
+                response.sendRedirect("ProductController?action=listProduct");
                 break;
+
             case "home":
                 List<Product> listPublic = ProductDAO.getInstance().listAll();
                 request.setAttribute("list", listPublic);
                 request.getRequestDispatcher("index.jsp").forward(request, response);
                 break;
+
             default:
                 response.sendRedirect("index.jsp");
                 break;
@@ -97,72 +94,141 @@ public class ProductController extends HttpServlet {
         if (action == null || action.isEmpty()) {
             action = "";
         }
-        int page = 1;
         switch (action) {
             case "addProduct":
                 try {
-                String productId = "SP" + (System.currentTimeMillis() % 100000);
-                String productName = request.getParameter("productName");
-                String categoryIdStr = request.getParameter("categoryId");
-                String postDateString = request.getParameter("postDate");
-                String brief = request.getParameter("brief");
-                String priceStr = request.getParameter("price");
-                String discountStr = request.getParameter("discount");
-                String imageUrl = request.getParameter("image");
-                Account account = (Account) session.getAttribute("login");
+                    String productId = "SP" + (System.currentTimeMillis() % 100000);
+                    String productName = request.getParameter("productName");
+                    String categoryIdStr = request.getParameter("categoryId");
+                    String postDateString = request.getParameter("postDate");
+                    String brief = request.getParameter("brief");
+                    String priceStr = request.getParameter("price");
+                    String discountStr = request.getParameter("discount");
+                    Account account = (Account) session.getAttribute("login");
 
-                String activeParam = request.getParameter("active");
-                boolean active = (activeParam != null) ? Boolean.parseBoolean(activeParam) : false;
+                    int categoryId = (categoryIdStr != null && !categoryIdStr.isEmpty()) ? Integer.parseInt(categoryIdStr) : 0;
+                    int price = (priceStr != null && !priceStr.isEmpty()) ? Integer.parseInt(priceStr) : 0;
+                    int discount = (discountStr != null && !discountStr.isEmpty()) ? Integer.parseInt(discountStr) : 0;
 
-                int categoryId = (categoryIdStr != null && !categoryIdStr.isEmpty()) ? Integer.parseInt(categoryIdStr) : 0;
-                int price = (priceStr != null && !priceStr.isEmpty()) ? Integer.parseInt(priceStr) : 0;
-                int discount = (discountStr != null && !discountStr.isEmpty()) ? Integer.parseInt(discountStr) : 0;
+                    java.sql.Date postDate = null;
+                    if (postDateString != null && !postDateString.isEmpty()) {
+                        postDate = java.sql.Date.valueOf(postDateString);
+                    }
 
-                java.sql.Date postDate = null;
-                if (postDateString != null && !postDateString.isEmpty()) {
-                    postDate = java.sql.Date.valueOf(postDateString);
+                    // Xử lý ảnh upload
+                    String imageUrl = null;
+                    Part filePart = request.getPart("image");
+                    if (filePart != null && filePart.getSize() > 0) {
+                        String originalFileName = filePart.getSubmittedFileName();
+                        String ext = originalFileName.substring(originalFileName.lastIndexOf('.'));
+                        String savedFileName = "product_" + productId + "_" + System.currentTimeMillis() + ext;
+                        String uploadDir = getServletContext().getRealPath("/uploads/");
+                        File uploadFolder = new File(uploadDir);
+                        if (!uploadFolder.exists()) uploadFolder.mkdirs();
+                        filePart.write(uploadDir + savedFileName);
+                        imageUrl = "uploads/" + savedFileName;
+                    }
+
+                    Product obj = new Product();
+                    obj.setProductId(productId);
+                    obj.setProductName(productName);
+                    obj.setBrief(brief);
+                    obj.setPrice(price);
+                    obj.setDiscount(discount);
+                    obj.setPostedDate(postDate);
+                    obj.setAccount(account);
+                    obj.setProductImage(imageUrl);
+
+                    Category cat = new Category();
+                    cat.setTypeId(categoryId);
+                    obj.setType(cat);
+
+                    ProductDAO.getInstance().insertRec(obj);
+                    response.sendRedirect("index.jsp");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+                    request.getRequestDispatcher("addProduct.jsp").forward(request, response);
                 }
+                break;
 
-                Product obj = new Product();
-                obj.setProductId(productId);
-                obj.setProductName(productName);
-                obj.setBrief(brief);
-                obj.setPrice(price);
-                obj.setDiscount(discount);
-                obj.setPostedDate(postDate);
-                obj.setAccount(account);
+            case "updateProduct":
+                try {
+                    String id = request.getParameter("id");
+                    String productName = request.getParameter("productName");
+                    String categoryIdStr = request.getParameter("categoryId");
+                    String postDateString = request.getParameter("postDate");
+                    String brief = request.getParameter("brief");
+                    String priceStr = request.getParameter("price");
+                    String discountStr = request.getParameter("discount");
+                    Account account = (Account) session.getAttribute("login");
 
-                if (imageUrl == null || imageUrl.trim().isEmpty()) {
-                    imageUrl = "/images/sanPham/icon.jpg";
+                    String activeParam = request.getParameter("active");
+                    boolean active = (activeParam != null) ? Boolean.parseBoolean(activeParam) : false;
+
+                    int categoryId = (categoryIdStr != null && !categoryIdStr.isEmpty()) ? Integer.parseInt(categoryIdStr) : 0;
+                    int price = (priceStr != null && !priceStr.isEmpty()) ? Integer.parseInt(priceStr) : 0;
+                    int discount = (discountStr != null && !discountStr.isEmpty()) ? Integer.parseInt(discountStr) : 0;
+
+                    java.sql.Date postDate = null;
+                    if (postDateString != null && !postDateString.isEmpty()) {
+                        postDate = java.sql.Date.valueOf(postDateString);
+                    }
+
+                    // Xử lý ảnh: ưu tiên file upload, rồi URL text, cuối cùng giữ ảnh cũ
+                    String imageUrl = null;
+                    Part filePart = request.getPart("image");
+                    if (filePart != null && filePart.getSize() > 0) {
+                        // Có file upload mới
+                        String originalFileName = filePart.getSubmittedFileName();
+                        String uploadDir = getServletContext().getRealPath("/uploads/");
+                        File uploadFolder = new File(uploadDir);
+                        if (!uploadFolder.exists()) uploadFolder.mkdirs();
+                        filePart.write(uploadDir + originalFileName);
+                        imageUrl = "/images/sanPham/" + originalFileName;
+                    } else {
+                        // Không có file → thử lấy URL text
+                        String imageUrlParam = request.getParameter("imageUrl");
+                        if (imageUrlParam != null && !imageUrlParam.trim().isEmpty()) {
+                            imageUrl = imageUrlParam.trim();
+                        } else {
+                            // Giữ ảnh cũ từ DB
+                            Product existing = ProductDAO.getInstance().getObjectById(id);
+                            if (existing != null) imageUrl = existing.getProductImage();
+                        }
+                    }
+
+                    Product obj = new Product();
+                    obj.setProductId(id);
+                    obj.setProductName(productName);
+                    obj.setBrief(brief);
+                    obj.setPrice(price);
+                    obj.setDiscount(discount);
+                    obj.setPostedDate(postDate);
+                    obj.setAccount(account);
+                    obj.setProductImage(imageUrl);
+
+                    Category cat = new Category();
+                    cat.setTypeId(categoryId);
+                    obj.setType(cat);
+
+                    ProductDAO.getInstance().updateRec(obj);
+                    response.sendRedirect("index.jsp");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
+                    request.getRequestDispatcher("updateProduct.jsp?id=" + request.getParameter("id")).forward(request, response);
                 }
-                obj.setProductImage(imageUrl);
+                break;
 
-                Category cat = new Category();
-                cat.setTypeId(categoryId);
-                obj.setType(cat);
-
-                ProductDAO.getInstance().insertRec(obj);
-                response.sendRedirect("index.jsp");
-            } catch (Exception e) {
-                e.printStackTrace();
-                request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
-                request.getRequestDispatcher("addProduct.jsp").forward(request, response);
-            }
-            break;
             default:
-                response.sendRedirect("addProduct.jsp");
+                response.sendRedirect("index.jsp");
                 break;
         }
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
-
+    }
 }

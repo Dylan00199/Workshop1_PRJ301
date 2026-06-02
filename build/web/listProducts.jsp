@@ -237,17 +237,20 @@
                             <% } else { %>—<% }%>
                         </td>
                         <td><%= p.getPostedDate()%></td>
+                        <% if ("admin".equalsIgnoreCase(currentRole)) {%>
                         <td>
-                            <a href="updateProduct.jsp" class="btn btn-update">Update</a>
+                            <a href="updateProduct.jsp?id=<%= p.getProductId()%>" class="btn btn-update">Update</a>
                             <a href="ProductController?action=deleteProduct&id=<%= p.getProductId()%>"
                                class="btn btn-delete"
                                onclick="return confirm('Delete product \"<%= p.getProductName()%>\"?')">Delete</a>
                         </td>
+                        <% }%>
+
                     </tr>
                     <% }%>
 
 
-                    <% } %>
+                    <% }%>
                 </tbody>
             </table>
         </div>
