@@ -239,7 +239,7 @@
                         <td><%= p.getPostedDate()%></td>
                         <td>
                             <a href="updateProduct.jsp" class="btn btn-update">Update</a>
-                            <a href="ProducController?action=deleteProduct&id=<%= p.getProductId()%>"
+                            <a href="ProductController?action=deleteProduct&id=<%= p.getProductId()%>"
                                class="btn btn-delete"
                                onclick="return confirm('Delete product \"<%= p.getProductName()%>\"?')">Delete</a>
                         </td>

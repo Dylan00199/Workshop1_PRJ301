@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -23,6 +24,11 @@ import javax.servlet.http.HttpSession;
  * @author PC
  */
 @WebServlet(name = "ProductController", urlPatterns = {"/ProductController"})
+@MultipartConfig(
+        fileSizeThreshold = 1024 * 1024 * 2, // 2MB
+        maxFileSize = 1024 * 1024 * 10, // 10MB
+        maxRequestSize = 1024 * 1024 * 50 // 50MB
+)
 public class ProductController extends HttpServlet {
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
@@ -70,7 +76,7 @@ public class ProductController extends HttpServlet {
                 }
                 Product del = ProductDAO.getInstance().getObjectById(delId);
                 ProductDAO.getInstance().deleteRec(del);
-                response.sendRedirect("index.jsp");
+                response.sendRedirect("listProduct.jsp");
                 break;
             case "home":
                 List<Product> listPublic = ProductDAO.getInstance().listAll();
@@ -102,7 +108,8 @@ public class ProductController extends HttpServlet {
                 String brief = request.getParameter("brief");
                 String priceStr = request.getParameter("price");
                 String discountStr = request.getParameter("discount");
-                String imageUrl = request.getParameter("imageUrl");
+                String imageUrl = request.getParameter("image");
+                Account account = (Account) session.getAttribute("login");
 
                 String activeParam = request.getParameter("active");
                 boolean active = (activeParam != null) ? Boolean.parseBoolean(activeParam) : false;
@@ -115,8 +122,6 @@ public class ProductController extends HttpServlet {
                 if (postDateString != null && !postDateString.isEmpty()) {
                     postDate = java.sql.Date.valueOf(postDateString);
                 }
-
-                Account account = (Account) session.getAttribute("login");
 
                 Product obj = new Product();
                 obj.setProductId(productId);
@@ -140,12 +145,12 @@ public class ProductController extends HttpServlet {
                 response.sendRedirect("index.jsp");
             } catch (Exception e) {
                 e.printStackTrace();
-                request.setAttribute("errorMessage", "Lỗi hệ thống: " + e.getMessage());
+                request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
                 request.getRequestDispatcher("addProduct.jsp").forward(request, response);
             }
             break;
             default:
-                response.sendRedirect("index.jsp");
+                response.sendRedirect("addProduct.jsp");
                 break;
         }
     }

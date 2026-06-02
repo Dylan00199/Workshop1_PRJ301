@@ -51,7 +51,7 @@
             <li class="dropdown">
                 <a class="nav-link dropdown-toggle">Products</a>
                 <ul class="dropdown-menu">
-                    <li><a href="ProductController?action=listProduct1">List Products</a></li>
+                    <li><a href="ProductController?action=listProduct">List Products</a></li>
                         <% if (account != null) { %>
                     <li><a href="addProduct.jsp">Add Product</a></li>
                         <% } %>
