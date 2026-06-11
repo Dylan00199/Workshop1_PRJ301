@@ -5,8 +5,7 @@ RUN rm -rf /usr/local/tomcat/webapps/*
 
 # Copy file .war của project vào thư mục webapps của Tomcat và đổi tên thành ROOT.war để chạy ở trang chủ
 # LƯU Ý: Thay đổi đường dẫn tới file .war thực tế của bro
-COPY C:\FPT_Subject\4th Semester\PRJ301\Workshop1\W1_PhamNhatDuyAnh_SE205044\dist
-
+COPY ./build/web /usr/local/tomcat/webapps/ROOT/
 # Mở port 8080
 EXPOSE 8080
 
