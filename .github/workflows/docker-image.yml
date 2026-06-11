@@ -8,18 +8,22 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
-    - name: Check out the code
-      uses: actions/checkout@v4
+      - name: Check out the code
+        uses: actions/checkout@v4
 
-    - name: Log in to Docker Hub
-      uses: docker/login-action@v3
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Debug - Xem danh sách file
+        run: ls -la
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        push: true
-        tags: ${{ secrets.DOCKERHUB_USERNAME }}/workshop1-prj301:latest
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile   
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/workshop1-prj301:latest
