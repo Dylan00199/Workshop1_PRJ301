@@ -4,6 +4,7 @@
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Model/dao/CategoryDAO.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Controller/CategoryController.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Controller/ProductController.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Model/Product.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/View/Run.java</file>
@@ -12,7 +13,6 @@
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Model/dao/ProductDAO.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/src/java/Controller/loginController.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/navbar.jsp</file>
-            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/addProduct.jsp</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/Workshop1_SE205044/web/updateProduct.jsp</file>
         </group>
     </open-files>

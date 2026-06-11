@@ -115,18 +115,16 @@ public class ProductController extends HttpServlet {
                         postDate = java.sql.Date.valueOf(postDateString);
                     }
 
-                    // Xử lý ảnh upload
+                    // ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
                     String imageUrl = null;
                     Part filePart = request.getPart("image");
                     if (filePart != null && filePart.getSize() > 0) {
                         String originalFileName = filePart.getSubmittedFileName();
-                        String ext = originalFileName.substring(originalFileName.lastIndexOf('.'));
-                        String savedFileName = "product_" + productId + "_" + System.currentTimeMillis() + ext;
                         String uploadDir = getServletContext().getRealPath("/uploads/");
                         File uploadFolder = new File(uploadDir);
                         if (!uploadFolder.exists()) uploadFolder.mkdirs();
-                        filePart.write(uploadDir + savedFileName);
-                        imageUrl = "uploads/" + savedFileName;
+                        filePart.write(uploadDir + originalFileName);
+                        imageUrl = "/images/sanPham/" + originalFileName;
                     }
 
                     Product obj = new Product();
@@ -175,7 +173,7 @@ public class ProductController extends HttpServlet {
                         postDate = java.sql.Date.valueOf(postDateString);
                     }
 
-                    // Xử lý ảnh: ưu tiên file upload, rồi URL text, cuối cùng giữ ảnh cũ
+                    //ERRORRRRRRRRRRRRRRRRRRRRRRR
                     String imageUrl = null;
                     Part filePart = request.getPart("image");
                     if (filePart != null && filePart.getSize() > 0) {
