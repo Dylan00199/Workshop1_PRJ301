@@ -6,6 +6,7 @@ package Controller;
 
 import Model.Account;
 import Model.dao.AccountDAO;
+import Utilities.PasswordUtils;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.ServletException;
@@ -22,20 +23,10 @@ import javax.servlet.http.HttpSession;
 @WebServlet(name = "loginController", urlPatterns = {"/loginController"})
 public class loginController extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try ( PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
             out.println("<!DOCTYPE html>");
             out.println("<html>");
             out.println("<head>");
@@ -51,10 +42,12 @@ public class loginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
+        HttpSession session = request.getSession(false);
         String action = request.getParameter("action");
         if ("logout".equalsIgnoreCase(action)) {
-            session.invalidate();
+            if (session != null) {
+                session.invalidate();
+            }
             response.sendRedirect("login.jsp");
             return;
         }
@@ -63,7 +56,12 @@ public class loginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
+        String action = request.getParameter("action");
+        if (!"login".equalsIgnoreCase(action)) {
+            response.sendRedirect("login.jsp");
+            return;
+        }
+
         String account = request.getParameter("username");
         String pass = request.getParameter("password");
 
@@ -75,22 +73,30 @@ public class loginController extends HttpServlet {
             return;
         }
 
-        if (a != null && !pass.equals(a.getPass())) {
+        if (!PasswordUtils.verify(pass, a.getPass())) {
             String msg = "Incorrect password! Please try again.";
             request.setAttribute("msg", msg);
             request.getRequestDispatcher("login.jsp").forward(request, response);
             return;
         }
 
-        session.setAttribute("login", a);
-        response.sendRedirect("index.jsp");
-        return;
+        if (PasswordUtils.needsRehash(a.getPass())) {
+            String newHash = PasswordUtils.hash(pass);
+            AccountDAO.getInstance().updatePassword(a, newHash); 
+            a.setPass(newHash);                        
+        }
+        HttpSession oldSession = request.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
+        HttpSession newSession = request.getSession(true);
+        newSession.setAttribute("login", a);
 
+        response.sendRedirect("index.jsp");
     }
 
     @Override
     public String getServletInfo() {
         return "Short description";
-    }// </editor-fold>
-
+    }
 }

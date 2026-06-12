@@ -1,6 +1,10 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.util.List" %>
-<%@ page import="Model.Account" %> 
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+
+<c:if test="${empty sessionScope.login}">
+    <c:redirect url="login.jsp" />
+</c:if>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -57,10 +61,10 @@
                 color: #fff;
                 margin-right: 4px;
             }
-            .btn-update  {
+            .btn-update {
                 background: #2980b9;
             }
-            .btn-update:hover  {
+            .btn-update:hover {
                 background: #1f6fa0;
             }
             .btn-deactive {
@@ -69,16 +73,16 @@
             .btn-deactive:hover {
                 background: #cf6d17;
             }
-            .btn-active  {
+            .btn-active {
                 background: #27ae60;
             }
-            .btn-active:hover  {
+            .btn-active:hover {
                 background: #1e9050;
             }
-            .btn-delete  {
+            .btn-delete {
                 background: #e74c3c;
             }
-            .btn-delete:hover  {
+            .btn-delete:hover {
                 background: #c0392b;
             }
 
@@ -89,13 +93,21 @@
                 border-radius: 10px;
                 font-size: 12px;
             }
-            .badge-active   {
+            .badge-active {
                 background: #d4edda;
                 color: #155724;
             }
             .badge-inactive {
                 background: #f8d7da;
                 color: #721c24;
+            }
+
+            /* ===== EMPTY STATE ===== */
+            .empty-state {
+                text-align: center;
+                padding: 40px;
+                color: #888;
+                font-size: 15px;
             }
         </style>
     </head>
@@ -105,57 +117,87 @@
         <%@ include file="navbar.jsp" %>
 
         <div class="page-content">
-            <h1 class="page-title">List of account in system</h1>
+            <h1 class="page-title">List of Accounts in System</h1>
+            <c:choose>
+                <c:when test="${not empty requestScope.listAccounts}">
+                    <table class="account-table">
+                        <thead>
+                            <tr>
+                                <th>Account</th>
+                                <th>Full Name</th>
+                                <th>Birthday</th>
+                                <th>Gender</th>
+                                <th>Phone</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach var="acc" items="${requestScope.listAccounts}">
 
-            <table class="account-table">
-                <thead>
-                    <tr>
-                        <th>Account</th>
-                        <th>Full name</th>
-                        <th>Birth day</th>
-                        <th>Gender</th>
-                        <th>Phone</th>
-                        <th>Role in system</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <%
-                        List<Account> listAccounts = (List<Account>) request.getAttribute("listAccounts");
-                        String roleAccountList = "User";
-                        if (listAccounts != null && !listAccounts.isEmpty()) {
+                                <c:choose>
+                                    <c:when test="${acc.roleInSystem == 1}">
+                                        <c:set var="roleLabel" value="Administrator" />
+                                    </c:when>
+                                    <c:when test="${acc.roleInSystem == 2}">
+                                        <c:set var="roleLabel" value="Manager" />
+                                    </c:when>
+                                    <c:otherwise>
+                                        <c:set var="roleLabel" value="User" />
+                                    </c:otherwise>
+                                </c:choose>
 
-                            for (Account acc : listAccounts) {%>
-                    <%
-                        if (acc.getRoleInSystem() == 1) {
-                            roleAccountList = "Administrator";
-                        } else if (acc.getRoleInSystem() == 2) {
-                            roleAccountList = "Manager";
-                        }
-                        session.setAttribute("updateAccount", acc);
+                                <tr>
+                                    <td>${acc.account}</td>
+                                    <td>${acc.firstname} ${acc.lastname}</td>
+                                    <td>${acc.dob}</td>
+                                    <td>${acc.gender ? 'Male' : 'Female'}</td>
+                                    <td>${acc.phone}</td>
+                                    <td>${roleLabel}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${acc.use}">
+                                                <span class="badge badge-active">Active</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span class="badge badge-inactive">Inactive</span>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
 
-                    %>
-                    <tr>
-                        <td><%= acc.getAccount()%></td>
-                        <td><%= acc.getFirstname()%>, <%= acc.getLastname()%></td>
-                        <td><%= acc.getDob()%></td>
-                        <td><%= acc.isGender() ? "Male" : "Female"%></td>
-                        <td><%= acc.getPhone()%></td>
-                        <td><%= roleAccountList%></td>
-                        <td>
-                            <a href="updateAccount.jsp" class="btn btn-update">Update</a>
-                            <% if (acc.isUse()) {%>
-                            <a href="AccountController?action=deactiveAccount&id=<%= acc.getAccount()%>" class="btn btn-deactive">Deactive</a>
-                            <% } else {%>
-                            <a href="AccountController?action=activeAccount&id=<%= acc.getAccount()%>" class="btn btn-active">Active</a>
-                            <% }%>
-                            <a href="AccountController?action=deleteAccount&id=<%= acc.getAccount()%>"class="btn btn-delete">Delete</a>
-                        </td>
-                    </tr>
-                    <% }
-                        }%>
-                </tbody>
-            </table>
+                                    <td>
+                                        <a href="updateAccount.jsp?updateAccount=${acc.account}"
+                                           class="btn btn-update">Update</a>
+
+                                        <c:choose>
+                                            <c:when test="${acc.use}">
+                                                <a href="AccountController?action=deactiveAccount&id=${acc.account}"
+                                                   class="btn btn-deactive">Deactivate</a>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <a href="AccountController?action=activeAccount&id=${acc.account}"
+                                                   class="btn btn-active">Activate</a>
+                                            </c:otherwise>
+                                        </c:choose>
+
+                                        <a href="AccountController?action=deleteAccount&id=${acc.account}"
+                                           class="btn btn-delete">Delete</a>
+                                    </td>
+                                </tr>
+
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </c:when>
+
+                <%-- BUG FIX #6: Added empty-state message instead of silently showing
+                     a blank table when there are no accounts --%>
+                <c:otherwise>
+                    <p class="empty-state">No accounts found in the system.</p>
+                </c:otherwise>
+            </c:choose>
+
         </div>
 
     </body>

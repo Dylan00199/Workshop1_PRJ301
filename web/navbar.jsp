@@ -1,69 +1,76 @@
 <%@page import="Model.Account"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%
-    Account account = (Account) session.getAttribute("login");
-    String currentRole = null;
-    String currentUser = null;
-    if (account != null) {
-        currentUser = account.getAccount();
-        int role = account.getRoleInSystem();
-        if (role == 1) {
-            currentRole = "Admin";
-        }
-        if (role == 2) {
-            currentRole = "Manager";
-        }
-        if (role == 3) {
-            currentRole = "User";
-        }
-    }
-    boolean isLoggedIn = (currentUser != null);
-%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <nav class="navbar">
     <div class="navbar-inner">
         <div class="navbar-brand">
             Welcome to
-            <% if (isLoggedIn) {%>
-            <strong class="role-label"><%= currentRole != null ? currentRole : "user"%></strong> [<%= currentUser%>]
-            <% } else { %>
-            <strong class="role-label">Guest</strong>
-            <% } %>
+
+            <c:choose>
+                <c:when test="${not empty sessionScope.login}">
+                    <strong class="role-label">
+                        <c:choose>
+                            <c:when test="${login.roleInSystem == 1}"><c:set var="AccountRole" value="Admin" /></c:when>
+                            <c:when test="${login.roleInSystem == 2}"><c:set var="AccountRole" value="Manager" /></c:when>
+                            <c:when test="${login.roleInSystem == 3}"><c:set var="AccountRole" value="User" /></c:when>
+                            <c:otherwise><c:set var="AccountRole" value="Unknown" /></c:otherwise>
+                        </c:choose>
+                        <c:out value="${AccountRole}" />
+                    </strong> 
+                    [<c:out value="${sessionScope.login.account}" />]
+                </c:when>
+                <c:otherwise>
+                    <strong class="role-label">Guest</strong>
+                </c:otherwise>
+            </c:choose>
         </div>
+
         <ul class="nav-links">
             <li><a href="index.jsp" class="nav-link">Home</a></li>
+
             <li class="dropdown">
                 <a class="nav-link dropdown-toggle">Accounts</a>
                 <ul class="dropdown-menu">
-                    <% if ("admin".equalsIgnoreCase(currentRole)) { %>
-                    <li><a href="AccountController?action=listAccount">List Accounts</a></li>
-                        <% } %>
-                    <li><a href="addAccount.jsp">Add Account</a></li>
-                    <li><a href="account.jsp">My Account</a></li>
+                    <c:if test="${sessionScope.login.roleInSystem == 1}">
+                        <li><a href="AccountController?action=listAccount">List Accounts</a></li>
+                        </c:if>
+                    <li><a href="addAccount.jsp">New Account</a></li>
+                        <c:if test="${not empty sessionScope.login}">
+                        <li><a href="AccountController?action=displayAccount">My Account</a></li>
+                        </c:if>
                 </ul>
             </li>
+
             <li class="dropdown">
                 <a class="nav-link dropdown-toggle">Categories</a>
                 <ul class="dropdown-menu">
                     <li><a href="CategoryController?action=listCategory">List Categories</a></li>
-                    <li><a href="addCategory.jsp">Add Category</a></li>
+                        <c:if test="${not empty sessionScope.login}">
+                        <li><a href="addCategory.jsp">Add Category</a></li>
+                        </c:if>
                 </ul>
             </li>
+
             <li class="dropdown">
                 <a class="nav-link dropdown-toggle">Products</a>
                 <ul class="dropdown-menu">
                     <li><a href="ProductController?action=listProduct">List Products</a></li>
-                        <% if (account != null) { %>
-                    <li><a href="addProduct.jsp">Add Product</a></li>
-                        <% } %>
+                        <c:if test="${not empty sessionScope.login}">
+                        <li><a href="addProduct.jsp">Add Product</a></li>
+                        </c:if>
                 </ul>
             </li>
         </ul>
+
         <div class="nav-auth">
-            <% if (isLoggedIn) { %>
-            <a href="loginController?action=logout" class="btn-logout">Logout</a>
-            <% } else { %>
-            <a href="login.jsp" class="btn-logout">Login</a>
-            <% }%>
+            <c:choose>
+                <c:when test="${not empty sessionScope.login}">
+                    <a href="loginController?action=logout" class="btn-logout">Logout</a>
+                </c:when>
+                <c:otherwise>
+                    <a href="login.jsp" class="btn-logout">Login</a>
+                </c:otherwise>
+            </c:choose>
         </div>
     </div>
 </nav>

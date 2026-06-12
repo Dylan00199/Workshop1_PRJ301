@@ -1,6 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.util.List" %>
-<%@ page import="Model.Product" %>
+<%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"  %>
+
+<%-- Redirect to controller if the product list has not been loaded yet --%>
+<c:if test="${empty list}">
+    <c:redirect url="ProductController?action=home" />
+</c:if>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -285,108 +290,129 @@
             <h1 class="section-title">Product Portfolio</h1>
             <p class="section-sub">Browse our latest products</p>
 
-            <%
-                List<Product> products = (List<Product>) request.getAttribute("list");
-                boolean hasProducts = products != null && !products.isEmpty();
-                if (request.getAttribute("list") == null) {
-                    response.sendRedirect("ProductController?action=home");
-                    return;
-                }
-            %>
+            <c:choose>
+                <c:when test="${empty list}">
+                    <div class="empty-state">No products found.</div>
+                </c:when>
+                <c:otherwise>
+                    <div class="product-grid" id="productGrid">
 
-            <% if (!hasProducts) { %>
-            <div class="empty-state">No products found.</div>
-            <% } else { %>
-            <div class="product-grid" id="productGrid">
+                        <c:forEach var="p" items="${list}">
 
+                            <%-- Pre-compute discounted price and original price as EL variables --%>
+                            <fmt:formatNumber var="discountedPrice"
+                                             value="${p.price * (1 - p.discount / 100.0)}"
+                                             type="number" maxFractionDigits="0" groupingUsed="true" />
+                            <fmt:formatNumber var="originalPrice"
+                                             value="${p.price}"
+                                             type="number" maxFractionDigits="0" groupingUsed="true" />
 
-                <% for (Product p : products) {%>
-                <div class="product-card" onclick="openModal(
-                                '<%= p.getProductName()%>',
-                                '<%= p.getType().getCategoryName()%>',
-                                '<%= p.getBrief().replace("'", "\\'").replace("\r\n", " ").replace("\n", " ").replace("\r", " ")%>',
-                                '<%= request.getContextPath() + p.getProductImage()%>',
-                                '<%= String.format("%,.0f VND", p.getPrice() * (1 - p.getDiscount() / 100.0))%>',
-                                '<%= (p.getDiscount() > 0) ? String.format("%,d VND", p.getPrice()) : ""%>',
-                                '<%= (p.getDiscount() > 0) ? "-" + p.getDiscount() + "%" : ""%>',
-                                '<%= p.getPostedDate()%>')">
-                    <div class="card-img"><img src="<%= request.getContextPath() + p.getProductImage()%>" alt="<%= p.getProductName()%>" onerror="this.parentElement.textContent='No image'"></div>
-                    <div class="card-body">
-                        <div class="card-type"><%= p.getType().getCategoryName()%></div>
-                        <div class="card-name"><%= p.getProductName()%></div>
-                        <div class="card-brief"><%= p.getBrief()%></div>
-                        <div class="card-footer">
-                            <div>
-                                <% if (p.getDiscount() > 0) {%>
-                                <span class="card-original-price"><%= String.format("%,d VND", p.getPrice())%></span>
-                                <% }%>
-                                <span class="card-price"><%= String.format("%,.0f VND", p.getPrice() * (1 - p.getDiscount() / 100.0))%></span>
+                            <div class="product-card"
+                                 onclick="openModal(this)"
+                                 data-name="<c:out value='${p.productName}'/>"
+                                 data-type="<c:out value='${p.type.categoryName}'/>"
+                                 data-brief="<c:out value='${p.brief}'/>"
+                                 data-img="${pageContext.request.contextPath}${p.productImage}"
+                                 data-price="${discountedPrice} VND"
+                                 data-original="${p.discount gt 0 ? originalPrice.concat(' VND') : ''}"
+                                 data-discount="${p.discount gt 0 ? '-'.concat(p.discount).concat('%') : ''}"
+                                 data-postdate="<c:out value='${p.postedDate}'/>">
+
+                                <div class="card-img">
+                                    <img src="${pageContext.request.contextPath}${p.productImage}"
+                                         alt="<c:out value='${p.productName}'/>"
+                                         onerror="this.parentElement.textContent='No image'">
+                                </div>
+
+                                <div class="card-body">
+                                    <div class="card-type"><c:out value="${p.type.categoryName}"/></div>
+                                    <div class="card-name"><c:out value="${p.productName}"/></div>
+                                    <%-- card-brief is populated via JS using data-brief (safe textContent) --%>
+                                    <div class="card-brief"></div>
+
+                                    <div class="card-footer">
+                                        <div>
+                                            <c:if test="${p.discount gt 0}">
+                                                <span class="card-original-price">${originalPrice} VND</span>
+                                            </c:if>
+                                            <span class="card-price">${discountedPrice} VND</span>
+                                        </div>
+                                        <c:if test="${p.discount gt 0}">
+                                            <span class="card-discount">-${p.discount}%</span>
+                                        </c:if>
+                                    </div>
+
+                                    <div class="card-postdate">Posted: <c:out value="${p.postedDate}"/></div>
+                                </div>
                             </div>
-                            <% if (p.getDiscount() > 0) {%>
-                            <span class="card-discount">-<%= p.getDiscount()%>%</span>
-                            <% }%>
-                        </div>
-                        <div class="card-postdate">Posted: <%= p.getPostedDate()%></div>
+
+                        </c:forEach>
                     </div>
-                </div>
-                <% } %>
-            </div>
-            <%}%>
+                </c:otherwise>
+            </c:choose>
         </div>
 
         <%-- ===== PRODUCT DETAIL MODAL ===== --%>
         <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
             <div class="modal" id="modalBox">
-                <button class="modal-close" onclick="closeModal()">✕</button>
+                <button class="modal-close" onclick="closeModal()">&#x2715;</button>
                 <img id="modalImg" class="modal-img" src="" alt="">
-                <div class="modal-name" id="modalName"></div>
-                <div class="modal-brief" id="modalBrief"></div>
+                <div class="modal-name"    id="modalName"></div>
+                <div class="modal-brief"   id="modalBrief"></div>
                 <div class="modal-price-row">
-                    <span class="modal-price" id="modalPrice"></span>
+                    <span class="modal-price"    id="modalPrice"></span>
                     <span class="modal-original" id="modalOriginal"></span>
                     <span class="modal-discount" id="modalDiscount"></span>
                 </div>
                 <dl class="modal-meta">
-                    <dt>Type</dt>    <dd id="modalType"></dd>
-                    <dt>Post date</dt><dd id="modalPostdate"></dd>
+                    <dt>Type</dt>      <dd id="modalType"></dd>
+                    <dt>Post date</dt> <dd id="modalPostdate"></dd>
                 </dl>
             </div>
         </div>
 
         <script>
-            function openModal(name, type, brief, img, price, original, discount, postdate) {
-                document.getElementById('modalName').textContent = name;
-                document.getElementById('modalType').textContent = type;
-                document.getElementById('modalBrief').textContent = brief;
-                document.getElementById('modalImg').src = img;
-                document.getElementById('modalImg').alt = name;
-                document.getElementById('modalPrice').textContent = price;
+            // openModal reads all values from data-* attributes (set safely via c:out above).
+            // .textContent is used throughout — no innerHTML, so no XSS risk.
+            function openModal(card) {
+                var d = card.dataset;
+                document.getElementById('modalName').textContent     = d.name;
+                document.getElementById('modalType').textContent     = d.type;
+                document.getElementById('modalBrief').textContent    = d.brief;
+                document.getElementById('modalImg').src              = d.img;
+                document.getElementById('modalImg').alt              = d.name;
+                document.getElementById('modalPrice').textContent    = d.price;
 
-                // Xử lý hiển thị Giá gốc
                 var originalElem = document.getElementById('modalOriginal');
-                originalElem.textContent = original;
-                originalElem.style.display = original ? 'inline' : 'none'; // Có giá gốc thì hiện, không thì ẩn
+                originalElem.textContent   = d.original;
+                originalElem.style.display = d.original ? 'inline' : 'none';
 
-                // Xử lý hiển thị Tag giảm giá
                 var discountElem = document.getElementById('modalDiscount');
-                discountElem.textContent = discount;
-                discountElem.style.display = discount ? 'inline' : 'none'; // Có giảm giá thì hiện, không thì ẩn
+                discountElem.textContent   = d.discount;
+                discountElem.style.display = d.discount ? 'inline' : 'none';
 
-                document.getElementById('modalPostdate').textContent = postdate;
+                document.getElementById('modalPostdate').textContent = d.postdate;
                 document.getElementById('modalOverlay').classList.add('open');
                 document.body.style.overflow = 'hidden';
             }
+
             function closeModal() {
                 document.getElementById('modalOverlay').classList.remove('open');
                 document.body.style.overflow = '';
             }
+
             function closeModalOutside(e) {
-                if (e.target === document.getElementById('modalOverlay'))
-                    closeModal();
+                if (e.target === document.getElementById('modalOverlay')) closeModal();
             }
-            document.addEventListener('keydown', e => {
-                if (e.key === 'Escape')
-                    closeModal();
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
+
+            // Populate card-brief text on load using the safe data-brief attribute.
+            document.querySelectorAll('.product-card').forEach(function(card) {
+                var el = card.querySelector('.card-brief');
+                if (el) el.textContent = card.dataset.brief || '';
             });
         </script>
 

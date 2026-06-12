@@ -1,64 +1,8 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="Model.Account" %> 
-<%
-    Account ac = (Account) session.getAttribute("login");
-    String msg = (String) request.getAttribute("msg");
-    String AccountRole = null;
-    String AccountUser = null;
-    if (ac != null) {
-        AccountUser = ac.getAccount();
-        int role = ac.getRoleInSystem();
-        if (role == 1) {
-            AccountRole = "Admin";
-        }
-        if (role == 2) {
-            AccountRole = "Manager";
-        }
-        if (role == 3) {
-            AccountRole = "User";
-        }
-    }
-    if (AccountUser == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-    String firstName = ac.getFirstname();
-    String lastName = ac.getLastname();
-    String fullName = ac.getFirstname() + ", " + ac.getLastname();
-    String phone = ac.getPhone();
-    String dob = String.valueOf(ac.getDob());
-    boolean isGender = ac.isGender();
-    boolean isActive = ac.isUse();
-    String gender = "Male";
-    // Fallback values for display
-    if (fullName == null || fullName.isEmpty()) {
-        fullName = AccountUser;
-    }
-    if (phone == null) {
-        phone = "—";
-    }
-    if (dob == null) {
-        dob = "—";
-    }
-    if (!isGender) {
-        gender = "Female";
-    }
-//    boolean active = !"false".equalsIgnoreCase(isActive);
 
-    // Build initials avatar (up to 2 chars)
-    String[] parts = fullName.trim().split("\\s+");
-    String initials = "";
-    if (parts.length >= 2) {
-        initials = String.valueOf(parts[0].charAt(0)) + String.valueOf(parts[parts.length - 1].charAt(0));
-    } else if (parts.length == 1 && parts[0].length() > 0) {
-        initials = String.valueOf(parts[0].charAt(0));
-    }
-    initials = initials.toUpperCase();
-
-    // Error / success message from update action
-    String successMsg = (String) request.getAttribute("success");
-    String errorMsg = (String) request.getAttribute("error");
-%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -128,6 +72,13 @@
                 justify-content: center;
                 margin: 0 auto 14px;
                 letter-spacing: 1px;
+                overflow: hidden;
+            }
+            .avatar-circle img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
             }
 
             .sidebar-name {
@@ -149,16 +100,6 @@
                 font-size: 12px;
                 font-weight: 700;
                 letter-spacing: 0.3px;
-            }
-            .badge-admin {
-                background: #fde8e8;
-                color: #c0392b;
-            }
-            .badge-staff {
-                background: #e8f4fd;
-                color: #1a6fa0;
-            }
-            .badge-user {
                 background: #eafaf1;
                 color: #1e8449;
             }
@@ -478,130 +419,124 @@
     <body>
 
         <%@ include file="navbar.jsp" %>
-
+        <c:if test="${empty login}">
+            <jsp:forward page="addAccount.jsp"/>
+        </c:if>
         <div class="page-content">
             <h1 class="page-title">My account</h1>
 
             <%-- ===== ALERTS ===== --%>
-            <% if (successMsg != null) {%>
-            <div class="alert alert-success">✔ <%= successMsg%></div>
-            <% } %>
-            <% if (errorMsg != null) {%>
-            <div class="alert alert-error">✕ <%= errorMsg%></div>
-            <% }%>
+            <c:if test = "${not empty success_msg}">
+                <div class="alert alert-success"><c:out value = "${success_msg}"/></div>
+            </c:if>
+
+            <c:if test = "${not empty error_msg}">
+                <div class="alert alert-error"><c:out value = "${error_msg}"/></div>
+            </c:if>
 
             <div class="profile-wrap">
 
-                <%-- =========================================
-                     SIDEBAR
-                ========================================= --%>
+
                 <div class="sidebar-card">
-                    <div class="avatar-circle"><%= initials%></div>
-                    <div class="sidebar-name"><%= fullName%></div>
-                    <div class="sidebar-username"><%= AccountUser%></div>
+                    <c:if test="${login.gender eq true}">
+                        <div class="avatar-circle"><img src="./images/img_avatar1.png" alt="alt"/></div>
+                    </c:if>
+                    <c:if test="${login.gender eq false}">
+                        <div class="avatar-circle"><img src="./images/img_avatar2.png" alt="alt"/></div>
+                    </c:if>
+                    <div class="sidebar-name">${fullName}</div>
+                    <div class="sidebar-username">${sessionScope.login.account}</div>
 
-                    <%
-                        String roleClass = "badge-user";
-                        if ("Administrator".equalsIgnoreCase(AccountRole))
-                            roleClass = "badge-admin";
-                        else if ("Staff".equalsIgnoreCase(AccountRole))
-                            roleClass = "badge-staff";
-                    %>
-                    <span class="badge-role <%= roleClass%>"><%= AccountRole != null ? AccountRole : "User"%></span>
 
+
+                    <span class="badge-role ${roleClass}">
+                        ${not empty AccountRole ? AccountRole : "User"}
+                    </span>
                     <div class="status-row">
-                        <span class="status-dot <%= isActive ? "" : "inactive"%>"></span>
-                        <%= isActive ? "Active" : "Inactive"%>
+                        <span class="status-dot ${login.use ? '' : 'inactive'}"></span>
+                        ${login.use ? "Active" : "Inactive"}
                     </div>
 
                     <hr class="sidebar-divider">
 
                     <ul class="sidebar-nav">
                         <li>
-                            <a class="active-tab" onclick="showTab('info')">
+                            <a class="active-tab" onclick="showTab('info', this)">
                                 <span class="icon">&#128100;</span> Profile info
                             </a>
                         </li>
                         <li>
-                            <a onclick="showTab('password')">
+                            <a onclick="showTab('password', this)">
                                 <span class="icon">&#128274;</span> Change password
                             </a>
                         </li>
                     </ul>
                 </div>
 
-                <%-- =========================================
-                     MAIN PANEL
-                ========================================= --%>
                 <div class="main-panel">
 
-                    <%-- ===== TAB: PROFILE INFO ===== --%>
                     <div id="tab-info">
 
-                        <%-- Personal info card --%>
                         <div class="info-card">
                             <div class="info-card-header">
                                 <h2>Personal information</h2>
                                 <a class="btn-edit" onclick="toggleEdit('personal')">Edit</a>
                             </div>
 
-                            <%-- Display view --%>
                             <div class="info-grid" id="view-personal">
                                 <div class="info-item">
                                     <div class="info-label">Full name</div>
-                                    <div class="info-value"><%= fullName%></div>
+                                    <div class="info-value">${fullName}</div>
                                 </div>
                                 <div class="info-item">
                                     <div class="info-label">Username (email)</div>
-                                    <div class="info-value"><%= AccountUser%></div>
+                                    <div class="info-value">${sessionScope.login.account}</div>
                                 </div>
                                 <div class="info-item">
                                     <div class="info-label">Phone number</div>
-                                    <div class="info-value <%= phone.equals("—") ? "muted" : ""%>"><%= phone%></div>
+                                    <div class="info-value ${login.phone eq '—' ? 'muted' : ''}">${login.phone}</div>
                                 </div>
                                 <div class="info-item">
                                     <div class="info-label">Date of birth</div>
-                                    <div class="info-value <%= dob.equals("—") ? "muted" : ""%>"><%= dob%></div>
+                                    <div class="info-value ${login.dob eq '—' ? 'muted' : ''}">${login.dob}</div>
                                 </div>
                                 <div class="info-item">
                                     <div class="info-label">Gender</div>
-                                    <div class="info-value"><%= gender%></div>
+                                    <div class="info-value">${login.gender ? 'Male' : 'Female'}</div>
                                 </div>
                                 <div class="info-item">
                                     <div class="info-label">Role</div>
-                                    <div class="info-value"><%= AccountRole != null ? AccountRole : "—"%></div>
+                                    <div class="info-value">${not empty AccountRole ? AccountRole : "—"}</div>
                                 </div>
                             </div>
 
-                            <%-- Edit form --%>
                             <div class="edit-form" id="edit-personal">
                                 <form action="AccountController" method="POST">
                                     <input type="hidden" name="action" value="updateProfile">
+                                    <input type="hidden" name="Account" value="${sessionScope.login.account}">
+                                    <input type="hidden" name="role" value="${sessionScope.login.roleInSystem}">
                                     <div class="edit-grid">
                                         <div class="edit-group">
                                             <label>First name</label>
-                                            <input type="text" name="fn" placeholder="First name" value="<%= firstName.equals("—") ? "" : firstName%>">
+                                            <input type="text" name="fn" placeholder="First Name" value="${login.firstname eq '—' ? '' : login.firstname}">
                                         </div>
                                         <div class="edit-group">
                                             <label>Last name</label>
-                                            <input type="text" name="ln" placeholder="Last name" value="<%= lastName.equals("—") ? "" : lastName%>">
+                                            <input type="text" name="ln" placeholder="Last Name" value="${login.lastname eq '—' ? '' : login.lastname}">
                                         </div>
                                         <div class="edit-group">
                                             <label>Phone number</label>
-                                            <input type="text" name="phone"
-                                                   placeholder="Phone number"
-                                                   value="<%= phone.equals("—") ? "" : phone%>">
+                                            <input type="text" name="phone" placeholder="Phone number" value="${login.phone eq '—' ? '' : login.phone}">
                                         </div>
                                         <div class="edit-group">
                                             <label>Date of birth</label>
-                                            <input type="date" name="dob"
-                                                   value="<%= dob.equals("—") ? "" : dob%>">
+                                            <input type="date" name="${login.dob eq '—' ? '' : login.dob}">
                                         </div>
                                         <div class="edit-group">
                                             <label>Gender</label>
                                             <select name="gender">
-                                                <option value="true"  <%= "Male".equalsIgnoreCase(gender) ? "selected" : ""%>>Male</option>
-                                                <option value="false" <%= "Female".equalsIgnoreCase(gender) ? "selected" : ""%>>Female</option>
+                                                <option value="true" ${fn:toLowerCase(login.gender) eq 'male' ? 'selected' : ''}>Male</option>
+                                                <option value="false" ${fn:toLowerCase(login.gender) eq 'female' ? 'selected' : ''}>Female</option>
                                             </select>
                                         </div>
                                     </div>
@@ -613,7 +548,6 @@
                             </div>
                         </div>
 
-                        <%-- Account status card --%>
                         <div class="info-card">
                             <div class="info-card-header">
                                 <h2>Account status</h2>
@@ -622,49 +556,60 @@
                                 <div class="info-item">
                                     <div class="info-label">Status</div>
                                     <div class="info-value">
-                                        <% if (isActive) { %>
-                                        <span style="color:#27ae60; font-weight:700;">&#9679; Active</span>
-                                        <% } else { %>
-                                        <span style="color:#e74c3c; font-weight:700;">&#9679; Inactive</span>
-                                        <% }%>
+                                        <c:choose>
+                                            <c:when test="${login.use}">
+                                                <span style="color:#27ae60; font-weight:700;">&#9679; Active</span>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <span style="color:#e74c3c; font-weight:700;">&#9679; Inactive</span>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </div>
                                 <div class="info-item">
                                     <div class="info-label">Role in system</div>
-                                    <div class="info-value"><%= AccountRole != null ? AccountRole : "—"%></div>
+                                    <div class="info-value">${not empty AccountRole ? AccountRole : "—"}</div>
                                 </div>
                             </div>
                         </div>
 
-                    </div><%-- end tab-info --%>
+                    </div>
 
-                    <%-- ===== TAB: CHANGE PASSWORD ===== --%>
                     <div id="tab-password" style="display:none">
                         <div class="info-card">
                             <div class="info-card-header">
                                 <h2>Change password</h2>
                             </div>
-                            <% if (msg != null) {%>
-                            <div class="error-box"><%= msg%></div>
-                            <% }%>
+
+                            <c:if test="${not empty msg}">
+                                <div class="error-box"><c:out value="${msg}"/></div>
+                            </c:if>
 
                             <div class="pw-form">
                                 <form action="AccountController" method="POST">
                                     <input type="hidden" name="action" value="changePassword">
-                                    <input type="hidden" name="accountToChangeP" value="<%=AccountUser%>">
+                                    <input type="hidden" name="accountToChangeP" value="${sessionScope.login.account}">
                                     <div class="pw-grid">
                                         <div class="pw-group full">
                                             <label>Current password</label>
-                                            <input type="password" name="currentPassword" placeholder="Enter current password" autocomplete="current-password">
+                                            <input type="password" name="currentPassword" 
+                                                   placeholder="Enter current password" 
+                                                   required
+                                                   autocomplete="current-password">
                                         </div>
                                         <div class="pw-group">
                                             <label>New password</label>
-                                            <input type="password" name="newPassword" id="newPw" placeholder="New password" autocomplete="new-password" oninput="checkStrength(this.value)">
-                                            <div class="hint" id="pwStrength"></div>
+                                            <input type="password" name="newPassword" 
+                                                   placeholder="New password"
+                                                   required
+                                                   autocomplete="new-password">
                                         </div>
                                         <div class="pw-group">
                                             <label>Confirm new password</label>
-                                            <input type="password" name="confirmPassword" placeholder="Repeat new password" autocomplete="new-password">
+                                            <input type="password" name="confirmPassword" 
+                                                   placeholder="Repeat new password" 
+                                                   required
+                                                   autocomplete="new-password">
                                         </div>
                                     </div>
                                     <div class="edit-actions">
@@ -673,9 +618,8 @@
                                 </form>
                             </div>
                         </div>
-                    </div><%-- end tab-password --%>
+                    </div>
 
-                    <%-- ===== DANGER ZONE ===== --%>
                     <div class="info-card danger-card" id="danger-zone" style="display:none">
                         <div class="info-card-header">
                             <h2>Danger zone</h2>
@@ -692,13 +636,12 @@
                         </div>
                     </div>
 
-                </div><%-- end main-panel --%>
-            </div><%-- end profile-wrap --%>
+                </div>
+            </div>
         </div>
 
         <script>
-            // ===== TAB SWITCHING =====
-            function showTab(tab) {
+            function showTab(tab, el) {
                 document.getElementById('tab-info').style.display = tab === 'info' ? 'flex' : 'none';
                 document.getElementById('tab-password').style.display = tab === 'password' ? 'block' : 'none';
                 document.getElementById('danger-zone').style.display = tab === 'password' ? 'block' : 'none';
@@ -706,15 +649,14 @@
                 document.querySelectorAll('.sidebar-nav a').forEach(function (a) {
                     a.classList.remove('active-tab');
                 });
-                event.currentTarget.classList.add('active-tab');
+                if (el)
+                    el.classList.add('active-tab');
             }
 
-            // Fix initial tab-info display
             document.getElementById('tab-info').style.display = 'flex';
             document.getElementById('tab-info').style.flexDirection = 'column';
             document.getElementById('tab-info').style.gap = '20px';
 
-            // ===== EDIT TOGGLE =====
             function toggleEdit(section) {
                 var view = document.getElementById('view-' + section);
                 var form = document.getElementById('edit-' + section);
@@ -727,35 +669,14 @@
                 }
             }
 
-            // ===== PASSWORD STRENGTH =====
-            function checkStrength(val) {
-                var el = document.getElementById('pwStrength');
-                if (!val) {
-                    el.textContent = '';
-                    return;
-                }
-                var strong = val.length >= 8 && /[A-Z]/.test(val) && /[0-9]/.test(val);
-                var medium = val.length >= 6;
-                if (strong) {
-                    el.textContent = '✔ Strong password';
-                    el.style.color = '#27ae60';
-                } else if (medium) {
-                    el.textContent = '~ Medium — add numbers or uppercase';
-                    el.style.color = '#e67e22';
-                } else {
-                    el.textContent = '✕ Too short (min 6 characters)';
-                    el.style.color = '#e74c3c';
-                }
-            }
-
-            <% if (msg != null) { %>
+            <c:if test="${not empty msg}">
             showTab('password');
             document.querySelectorAll('.sidebar-nav a').forEach(function (a) {
                 if (a.getAttribute('onclick') && a.getAttribute('onclick').includes('password')) {
                     a.classList.add('active-tab');
                 }
             });
-            <% }%>
+            </c:if>
         </script>
 
     </body>

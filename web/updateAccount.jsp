@@ -1,54 +1,11 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="Model.Account" %> 
-<%
-    Account acc = (Account) session.getAttribute("updateAccount");
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
-    String pass = acc.getPass();
-    String firstName = acc.getFirstname();
-    String lastName = acc.getLastname();
-    String fullName = acc.getFirstname() + ", " + acc.getLastname();
-    String phone = acc.getPhone();
-    String dob = String.valueOf(acc.getDob());
-    boolean isGender = acc.isGender();
-    boolean isActive = acc.isUse();
-    String gender = "Male";
+<c:if test="${empty sessionScope.updateAccount}">
+    <c:redirect url="login.jsp"/>
+</c:if>
 
-    String AccountRole = null;
-    String AccountUser = null;
-    if (acc != null) {
-        AccountUser = acc.getAccount();
-        int role = acc.getRoleInSystem();
-        if (role == 1) {
-            AccountRole = "Admin";
-        }
-        if (role == 2) {
-            AccountRole = "Manager";
-        }
-        if (role == 3) {
-            AccountRole = "User";
-        }
-    }
-    if (AccountUser == null) {
-        response.sendRedirect("login.jsp");
-        return;
-    }
-    // Fallback values for display
-    if (fullName == null || fullName.isEmpty()) {
-        fullName = acc.getAccount();
-    }
-    if (phone == null) {
-        phone = "—";
-    }
-    if (dob == null) {
-        dob = "—";
-    }
-    if (!isGender) {
-        gender = "Female";
-    }
 
-    String errorMsg = (String) request.getAttribute("error");
-    String successMsg = (String) request.getAttribute("success");
-%>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -59,7 +16,6 @@
                 padding: 24px 32px;
             }
 
-            /* ===== BREADCRUMB ===== */
             .breadcrumb {
                 font-size: 13px;
                 color: #aaa;
@@ -83,7 +39,6 @@
                 margin-bottom: 24px;
             }
 
-            /* ===== ALERTS ===== */
             .alert {
                 padding: 10px 16px;
                 border-radius: 5px;
@@ -99,13 +54,12 @@
                 border: 1px solid #a9dfbf;
                 color: #1e8449;
             }
-            .alert-error   {
+            .alert-error {
                 background: #fdf2f2;
                 border: 1px solid #f5c6c6;
                 color: #c0392b;
             }
 
-            /* ===== FORM LAYOUT ===== */
             .form-layout {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
@@ -173,7 +127,6 @@
                 cursor: not-allowed;
             }
 
-            /* ===== GENDER ROW ===== */
             .radio-group {
                 display: flex;
                 align-items: center;
@@ -195,7 +148,6 @@
                 cursor: pointer;
             }
 
-            /* ===== CHECKBOX ===== */
             .checkbox-label {
                 display: flex;
                 align-items: center;
@@ -212,14 +164,12 @@
                 cursor: pointer;
             }
 
-            /* ===== HINT ===== */
             .hint {
                 font-size: 12px;
                 color: #aaa;
                 margin-top: 3px;
             }
 
-            /* ===== ACTIONS ===== */
             .form-actions {
                 grid-column: 1 / -1;
                 display: flex;
@@ -264,33 +214,32 @@
         <div class="page-content">
 
             <div class="breadcrumb">
-                <a href="AccountController?action=viewList">Accounts</a>
-                <span>›</span> Update account
+                <a href="AccountController?action=listAccount">Accounts</a>
+                <span>&#8250;</span> Update account
             </div>
 
             <h1 class="page-title">Update account</h1>
 
-            <% if (successMsg != null) {%>
-            <div class="alert alert-success"><%= successMsg%></div>
-            <% } %>
-            <% if (errorMsg != null) {%>
-            <div class="alert alert-error">e<%= errorMsg%></div>
-            <% }%>
+            <c:if test="${not empty success}">
+                <div class="alert alert-success"><c:out value="${success}"/></div>
+            </c:if>
+            <c:if test="${not empty error}">
+                <div class="alert alert-error"><c:out value="${error}"/></div>
+            </c:if>
 
             <form action="AccountController" method="POST">
-                <input type="hidden" name="action" value="updateAccount">
-                <input type="hidden" name="id"     value="<%=AccountUser%>">
+                <input type="hidden" name="action"   value="updateAccount">
+                <input type="hidden" name="Account"  value="${sessionScope.updateAccount.account}">
+                <input type="hidden" name="Password" value="${sessionScope.updateAccount.pass}">
 
                 <div class="form-layout">
 
-                    <%-- ===== BASIC INFO ===== --%>
                     <div class="form-section-title">Account information</div>
 
                     <div class="form-group full">
                         <label>Account (Email) <span class="required">*</span></label>
-                        <input type="text" name="Account"
-                               value="<%=AccountUser%>"
-                               placeholder="Enter email"
+                        <input type="text" name="AccountDisplay"
+                               value="<c:out value='${sessionScope.updateAccount.account}'/>"
                                readonly>
                         <span class="hint">Email cannot be changed after creation</span>
                     </div>
@@ -298,28 +247,28 @@
                     <div class="form-group">
                         <label>First name <span class="required">*</span></label>
                         <input type="text" name="fn"
-                               value="<%= firstName%>"
+                               value="<c:out value='${sessionScope.updateAccount.firstname}'/>"
                                placeholder="First name">
                     </div>
 
                     <div class="form-group">
                         <label>Last name <span class="required">*</span></label>
                         <input type="text" name="ln"
-                               value="<%= lastName%>"
+                               value="<c:out value='${sessionScope.updateAccount.lastname}'/>"
                                placeholder="Last name">
                     </div>
 
                     <div class="form-group">
                         <label>Phone number</label>
                         <input type="text" name="phone"
-                               value="<%= phone%>"
+                               value="<c:out value='${sessionScope.updateAccount.phone}'/>"
                                placeholder="Phone number">
                     </div>
 
                     <div class="form-group">
                         <label>Date of birth</label>
                         <input type="date" name="dob"
-                               value="<%= dob%>">
+                               value="${sessionScope.updateAccount.dob}">
                     </div>
 
                     <div class="form-group">
@@ -327,38 +276,39 @@
                         <div class="radio-group">
                             <label class="radio-label">
                                 <input type="radio" name="gender" value="true"
-                                       <%= "true".equals(gender) ? "checked" : ""%>> Male
+                                       ${sessionScope.updateAccount.gender ? 'checked' : ''}> Male
                             </label>
                             <label class="radio-label">
                                 <input type="radio" name="gender" value="false"
-                                       <%= "false".equals(gender) ? "checked" : ""%>> Female
+                                       ${sessionScope.updateAccount.gender ? '' : 'checked'}> Female
                             </label>
                         </div>
                     </div>
 
-                    <%-- ===== ROLE & STATUS ===== --%>
                     <div class="form-section-title mt">Role &amp; Status</div>
+                    <c:if test="${sessionScope.updateAccount.roleInSystem == 1}">
+                        <div class="form-group">
+                            <label>Role in system</label>
+                            <select name="role">
+                                <option value="Administrator" ${sessionScope.updateAccount.roleInSystem == 1 ? 'selected' : ''}>Administrator</option>
+                                <option value="Manager"       ${sessionScope.updateAccount.roleInSystem == 2 ? 'selected' : ''}>Manager</option>
+                                <option value="User"          ${sessionScope.updateAccount.roleInSystem == 3 ? 'selected' : ''}>User</option>
+                            </select>
+                        </div>
 
-                    <div class="form-group">
-                        <label>Role in system</label>
-                        <select name="role">
-                            <option value="Administrator" <%= "Administrator".equals(AccountRole) ? "selected" : ""%>>Administrator</option>
-                            <option value="Staff"         <%= "Staff".equals(AccountRole) ? "selected" : ""%>>Staff</option>
-                            <option value="User"          <%= "User".equals(AccountRole) ? "selected" : ""%>>User</option>
-                        </select>
-                    </div>
+                        <div class="form-group">
+                            <label>Account status</label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" name="active" value="true"
+                                       ${sessionScope.updateAccount.use ? 'checked' : ''}>
+                                Is active
+                            </label>
+                        </div>
+                    </c:if>
 
-                    <div class="form-group">
-                        <label>Account status</label>
-                        <label class="checkbox-label">
-                            <input type="checkbox" name="active" value="true"
-                                   <%= isActive ? "checked" : ""%>>
-                            Is active
-                        </label>
-                    </div>
 
-                    <%-- ===== RESET PASSWORD ===== --%>
-                    <input type="hidden" name="action" value="updateAccount">
+
+
                     <div class="form-section-title mt">Reset password (optional)</div>
 
                     <div class="form-group">
@@ -373,11 +323,9 @@
                                placeholder="Repeat new password">
                     </div>
 
-                    <%-- ===== ACTIONS ===== --%>
                     <div class="form-actions">
                         <button type="submit" class="btn-save">Save changes</button>
-                        <input type="hidden" name="Password"     value="<%=pass%>">
-                        <a href="AccountController?action=updateAccount" class="btn-cancel">Cancel</a>
+                        <a href="AccountController?action=listAccount" class="btn-cancel">Cancel</a>
                     </div>
 
                 </div>
