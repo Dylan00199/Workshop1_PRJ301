@@ -159,14 +159,12 @@
             <div class="login-card">
                 <h1 class="login-title">Sign in</h1>
                 <p class="login-sub">Enter your account credentials to continue</p>
-
+                
                 <c:if test="${not empty msg}">
                     <div class="error-box">${msg}</div>
                 </c:if>
 
                 <form action="loginController" method="POST">
-                    <input type="hidden" name="action" value="login">
-
                     <div class="form-group">
                         <label for="username">Account (Email)</label>
                         <input type="text" id="username" name="username"

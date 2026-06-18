@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package Controller;
 
 import Model.Account;
@@ -56,35 +52,89 @@ public class loginController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String action = request.getParameter("action");
-        if (!"login".equalsIgnoreCase(action)) {
-            response.sendRedirect("login.jsp");
-            return;
-        }
-
+        HttpSession session = request.getSession(true);
         String account = request.getParameter("username");
         String pass = request.getParameter("password");
+        String msg = "";
+
+        if (session.getAttribute("LOCKOUT_TIME") != null) {
+            long lockoutTime = (long) session.getAttribute("LOCKOUT_TIME");
+            long currentTime = System.currentTimeMillis();
+
+            if (currentTime < lockoutTime) {
+                long remainingMillis = lockoutTime - currentTime;
+                long remainingMinutes = (remainingMillis / 1000) / 60;
+
+                msg = "Your account is locked. Please wait " + remainingMinutes + " minutes.";
+                request.setAttribute("msg", msg);
+                request.getRequestDispatcher("AccessDenied.jsp").forward(request, response);
+                return;
+            } else {
+                session.removeAttribute("LOCKOUT_TIME");
+                session.removeAttribute("NUMBER_WRONG_PASS");
+            }
+        }
+
+        int NUMBER_WRONG_PASS = 3;
 
         Account a = AccountDAO.getInstance().getObjectById(account);
         if (a == null) {
-            String msg = "Can't find user's name! Please re-enter!";
+            msg = "Can't find user's name! Please re-enter!";
             request.setAttribute("msg", msg);
             request.getRequestDispatcher("login.jsp").forward(request, response);
+            return;
+        }
+
+        if (!a.isUse()) {
+            msg = "Your account has been deactived! Please contact us if you believe this is a mistake.";
+            request.setAttribute("msg", msg);
+            request.getRequestDispatcher("AccessDenied.jsp").forward(request, response);
             return;
         }
 
         if (!PasswordUtils.verify(pass, a.getPass())) {
-            String msg = "Incorrect password! Please try again.";
+            if (session.getAttribute("NUMBER_WRONG_PASS") != null) {
+                NUMBER_WRONG_PASS = (int) session.getAttribute("NUMBER_WRONG_PASS");
+            }
+            NUMBER_WRONG_PASS--;
+            session.setAttribute("NUMBER_WRONG_PASS", NUMBER_WRONG_PASS);
+
+            if (NUMBER_WRONG_PASS <= 0) {
+                int lockoutCount = 0;
+                if (session.getAttribute("LOCKOUT_COUNT") != null) {
+                    lockoutCount = (int) session.getAttribute("LOCKOUT_COUNT");
+                }
+                lockoutCount++; 
+                session.setAttribute("LOCKOUT_COUNT", lockoutCount);
+
+                long penaltyMinutes = (lockoutCount >= 2) ? 30*lockoutCount : 30;
+
+                long futureLockoutTime = System.currentTimeMillis() + (penaltyMinutes * 60 * 1000);
+                session.setAttribute("LOCKOUT_TIME", futureLockoutTime);
+
+                session.setMaxInactiveInterval( (int) (penaltyMinutes + 10) * 60);
+
+                request.getRequestDispatcher("login.jsp").forward(request, response);
+                return;
+            }
+
+            msg = "Incorrect password! Please try again.<br> You have " + NUMBER_WRONG_PASS + " attempts left.";
             request.setAttribute("msg", msg);
             request.getRequestDispatcher("login.jsp").forward(request, response);
             return;
         }
 
+        if (session != null) {
+            session.removeAttribute("NUMBER_WRONG_PASS");
+            session.removeAttribute("LOCKOUT_TIME");
+        }
+
         if (PasswordUtils.needsRehash(a.getPass())) {
             String newHash = PasswordUtils.hash(pass);
-            AccountDAO.getInstance().updatePassword(a, newHash); 
-            a.setPass(newHash);                        
+            AccountDAO.getInstance().updatePassword(a, newHash);
+            a.setPass(newHash);
         }
+
         HttpSession oldSession = request.getSession(false);
         if (oldSession != null) {
             oldSession.invalidate();

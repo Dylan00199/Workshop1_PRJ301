@@ -30,42 +30,6 @@
                 margin-bottom: 24px;
             }
 
-            /* ===== FILTER BAR ===== */
-            .filter-bar {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-                margin-bottom: 24px;
-                flex-wrap: wrap;
-            }
-            .filter-bar input[type="text"] {
-                padding: 6px 12px;
-                font-size: 13px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                width: 220px;
-                outline: none;
-            }
-            .filter-bar select {
-                padding: 6px 10px;
-                font-size: 13px;
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                outline: none;
-                cursor: pointer;
-            }
-            .filter-bar button {
-                padding: 6px 16px;
-                font-size: 13px;
-                border: 1px solid #bbb;
-                border-radius: 5px;
-                background: #fff;
-                cursor: pointer;
-            }
-            .filter-bar button:hover {
-                background: #f0f0f0;
-            }
-
             /* ===== PRODUCT GRID ===== */
             .product-grid {
                 display: grid;

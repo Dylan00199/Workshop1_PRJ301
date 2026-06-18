@@ -35,9 +35,7 @@
                         <li><a href="AccountController?action=listAccount">List Accounts</a></li>
                         </c:if>
                     <li><a href="addAccount.jsp">New Account</a></li>
-                        <c:if test="${not empty sessionScope.login}">
-                        <li><a href="AccountController?action=displayAccount">My Account</a></li>
-                        </c:if>
+                    <li><a href="AccountController?action=displayAccount">My Account</a></li>
                 </ul>
             </li>
 
