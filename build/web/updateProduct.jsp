@@ -1,26 +1,31 @@
-<%@page import="Model.dao.ProductDAO"%>
-<%@page import="Model.dao.CategoryDAO"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="java.util.List" %>
+<%@ page import="Model.dao.ProductDAO" %>
+<%@ page import="Model.dao.CategoryDAO" %>
 <%@ page import="Model.Product" %> 
 <%@ page import="Model.Category" %> 
-<%
-    String id = (String) request.getParameter("id");
-    Product p = ProductDAO.getInstance().getObjectById(id);
+<%@ page import="java.util.List" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
-    String errorMsg = (String) request.getParameter("error");
+<%
+    // Đẩy dữ liệu vào pageContext để sử dụng với EL
+    String id = request.getParameter("id");
+    Product p = ProductDAO.getInstance().getObjectById(id);
+    List<Category> cats = CategoryDAO.getInstance().listAll();
+
+    pageContext.setAttribute("p", p);
+    pageContext.setAttribute("cats", cats);
 %>
+
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <title>Update Product</title>
         <style>
+            /* (Tui giữ nguyên toàn bộ CSS của bạn, vì nó đã hiển thị tốt rồi) */
             .page-content {
                 padding: 24px 32px;
             }
-
-            /* ===== BREADCRUMB ===== */
             .breadcrumb {
                 font-size: 13px;
                 color: #aaa;
@@ -36,15 +41,12 @@
             .breadcrumb span {
                 margin: 0 6px;
             }
-
             h1.page-title {
                 font-size: 26px;
                 font-weight: 400;
                 color: #222;
                 margin-bottom: 24px;
             }
-
-            /* ===== ALERTS ===== */
             .alert {
                 padding: 10px 16px;
                 border-radius: 5px;
@@ -65,15 +67,12 @@
                 border: 1px solid #f5c6c6;
                 color: #c0392b;
             }
-
-            /* ===== LAYOUT ===== */
             .form-layout {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 gap: 0 40px;
                 max-width: 920px;
             }
-
             .form-section-title {
                 font-size: 12px;
                 font-weight: 700;
@@ -88,7 +87,6 @@
             .form-section-title.mt {
                 margin-top: 10px;
             }
-
             .form-group {
                 display: flex;
                 flex-direction: column;
@@ -97,7 +95,6 @@
             .form-group.full {
                 grid-column: 1 / -1;
             }
-
             .form-group label {
                 font-size: 13px;
                 font-weight: 600;
@@ -108,13 +105,7 @@
                 color: #e74c3c;
                 margin-left: 2px;
             }
-
-            .form-group input[type="text"],
-            .form-group input[type="number"],
-            .form-group input[type="date"],
-            .form-group input[type="file"],
-            .form-group select,
-            .form-group textarea {
+            .form-group input[type="text"], .form-group input[type="number"], .form-group input[type="date"], .form-group input[type="file"], .form-group select, .form-group textarea {
                 padding: 7px 12px;
                 font-size: 14px;
                 border: 1px solid #ccc;
@@ -125,9 +116,7 @@
                 width: 100%;
                 transition: border-color 0.15s;
             }
-            .form-group input:focus,
-            .form-group select:focus,
-            .form-group textarea:focus {
+            .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
                 border-color: #2980b9;
                 box-shadow: 0 0 0 3px rgba(41,128,185,0.1);
             }
@@ -139,8 +128,6 @@
                 resize: vertical;
                 min-height: 80px;
             }
-
-            /* ===== PREFIX INPUT ===== */
             .input-prefix-wrap {
                 display: flex;
                 align-items: center;
@@ -170,8 +157,6 @@
             .input-prefix-wrap input:focus {
                 box-shadow: none !important;
             }
-
-            /* ===== CURRENT IMAGE ===== */
             .image-section {
                 display: flex;
                 gap: 20px;
@@ -213,8 +198,7 @@
                 margin-bottom: 2px;
                 display: block;
             }
-            .img-inputs input[type="file"],
-            .img-inputs input[type="text"] {
+            .img-inputs input[type="file"], .img-inputs input[type="text"] {
                 padding: 6px 12px;
                 font-size: 13px;
                 border: 1px solid #ccc;
@@ -226,8 +210,6 @@
             .img-inputs input:focus {
                 border-color: #2980b9;
             }
-
-            /* ===== PREVIEW ===== */
             #imagePreview {
                 max-width: 120px;
                 max-height: 100px;
@@ -237,32 +219,11 @@
                 display: none;
                 margin-top: 6px;
             }
-
-            /* ===== CHECKBOX ===== */
-            .checkbox-label {
-                display: flex;
-                align-items: center;
-                gap: 8px;
-                font-size: 14px;
-                color: #333;
-                cursor: pointer;
-                margin-top: 4px;
-            }
-            .checkbox-label input[type="checkbox"] {
-                width: 16px;
-                height: 16px;
-                accent-color: #2980b9;
-                cursor: pointer;
-            }
-
-            /* ===== HINT ===== */
             .hint {
                 font-size: 12px;
                 color: #aaa;
                 margin-top: 3px;
             }
-
-            /* ===== ID BADGE ===== */
             .id-badge {
                 display: inline-block;
                 background: #f0f0f0;
@@ -273,8 +234,6 @@
                 color: #888;
                 font-family: monospace;
             }
-
-            /* ===== ACTIONS ===== */
             .form-actions {
                 grid-column: 1 / -1;
                 display: flex;
@@ -340,59 +299,50 @@
 
             <h1 class="page-title">Update product</h1>
 
-            <% if (errorMsg != null) {%>
-            <div class="alert alert-error">✕ <%= errorMsg%></div>
-            <% }%>
+            <c:if test="${not empty param.error}">
+                <div class="alert alert-error">&#10007; <c:out value="${param.error}"/></div>
+            </c:if>
 
             <form action="ProductController" method="POST" enctype="multipart/form-data">
                 <input type="hidden" name="action" value="updateProduct">
-                <input type="hidden" name="id"     value="<%= id%>">
+                <input type="hidden" name="id" value="<c:out value="${param.id}"/>">
 
                 <div class="form-layout">
 
                     <%-- ===== BASIC INFO ===== --%>
                     <div class="form-section-title">Basic information</div>
 
-                    <%-- ID --%>
                     <div class="form-group">
                         <label>Product ID</label>
-                        <span class="id-badge">#<%= id%></span>
+                        <span class="id-badge">#<c:out value="${param.id}"/></span>
                     </div>
 
-                    <%-- Post date --%>
                     <div class="form-group">
                         <label>Post date <span class="required">*</span></label>
-                        <input type="date" name="postDate" value="<%=p.getPostedDate()%>">
+                        <input type="date" name="postDate" value="${p.postedDate}">
                     </div>
 
-                    <%-- Product name --%>
                     <div class="form-group full">
                         <label>Product name <span class="required">*</span></label>
-                        <input type="text" name="productName"
-                               value="<%=p.getProductName()%>"
-                               placeholder="<%=p.getProductName()%>">
+                        <input type="text" name="productName" value="<c:out value="${p.productName}"/>" placeholder="Product name">
                     </div>
 
-                    <%-- Category --%>
                     <div class="form-group">
                         <label>Category <span class="required">*</span></label>
                         <select name="categoryId">
                             <option value="">-- Select category --</option>
-                            <%
-                        List<Category> cats = CategoryDAO.getInstance().listAll();
-                        if (cats != null)
-                            for (Category c : cats) {%>
-                            <option value="<%= c.getTypeId()%>" <%= c.getTypeId() == p.getType().getTypeId() ? "selected" : ""%>>
-                                <%= c.getCategoryName()%>
-                            </option>
-                            <% }%>
+                            <c:forEach var="c" items="${cats}">
+                                <%-- Dùng toán tử 3 ngôi (Ternary) của EL để auto-select category cũ --%>
+                                <option value="${c.typeId}" ${c.typeId eq p.type.typeId ? 'selected' : ''}>
+                                    <c:out value="${c.categoryName}"/>
+                                </option>
+                            </c:forEach>
                         </select>
                     </div>
 
-                    <%-- Brief --%>
                     <div class="form-group full">
                         <label>Brief description</label>
-                        <textarea name="brief" placeholder="Short description..."><%= p.getBrief() != null ? p.getBrief() : ""%></textarea>
+                        <textarea name="brief" placeholder="Short description..."><c:out value="${p.brief}"/></textarea>
                     </div>
 
                     <%-- ===== PRICING ===== --%>
@@ -402,9 +352,7 @@
                         <label>Price (VND) <span class="required">*</span></label>
                         <div class="input-prefix-wrap">
                             <span class="input-prefix">₫</span>
-                            <input type="number" name="price" min="0" step="1000"
-                                   value="<%=p.getPrice()%>"
-                                   placeholder="<%= p.getPrice()%>">
+                            <input type="number" name="price" min="0" step="1000" value="${p.price}" placeholder="${p.price}">
                         </div>
                     </div>
 
@@ -412,9 +360,7 @@
                         <label>Discount (%)</label>
                         <div class="input-prefix-wrap">
                             <span class="input-prefix">%</span>
-                            <input type="number" name="discount" min="0" max="100" step="1"
-                                   value="<%=p.getDiscount()%>"
-                                   placeholder="<%= p.getDiscount()%>">
+                            <input type="number" name="discount" min="0" max="100" step="1" value="${p.discount}" placeholder="${p.discount}">
                         </div>
                         <span class="hint">Set 0 if no discount</span>
                     </div>
@@ -425,21 +371,21 @@
                     <div class="form-group full">
                         <label>Current &amp; new image</label>
                         <div class="image-section">
-                            <%-- Current image --%>
                             <div class="current-img-wrap">
-                                <% if (p.getProductImage() != null && !p.getProductImage().isEmpty()) {%>
-                                <img src="<%= p.getProductImage()%>"
-                                     alt="Current image"
-                                     value ="<%=p.getProductImage()%>"
-                                     onerror="this.style.display='none';document.getElementById('noImgBox').style.display='flex'">
-                                <div id="noImgBox" class="no-img-box" style="display:none">No image</div>
-                                <% } else { %>
-                                <div class="no-img-box">No image</div>
-                                <% }%>
+                                <c:choose>
+                                    <c:when test="${not empty p.productImage}">
+                                        <img src="${p.productImage}" alt="Current image"
+                                             onerror="this.style.display='none';document.getElementById('noImgBox').style.display='flex'">
+                                        <div id="noImgBox" class="no-img-box" style="display:none">No image</div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="no-img-box">No image</div>
+                                    </c:otherwise>
+                                </c:choose>
                                 <span class="hint" style="text-align:center;display:block;margin-top:4px">Current</span>
                             </div>
 
-                            <%-- Inputs --%>
+                            <%-- Inputs upload ảnh --%>
                             <div class="img-inputs">
                                 <div>
                                     <label>Upload new image</label>
@@ -448,22 +394,18 @@
                                 </div>
                                 <div>
                                     <label>Or new image URL</label>
-                                    <input type="text" name="imageUrl"
-                                           value=""
-                                           oninput="previewUrl(this.value)">
+                                    <input type="text" name="imageUrl" value="" oninput="previewUrl(this.value)">
                                 </div>
                                 <img id="imagePreview" src="" alt="New preview">
                             </div>
                         </div>
                     </div>
 
-
                     <%-- ===== ACTIONS ===== --%>
                     <div class="form-actions full" style="grid-column: 1 / -1">
                         <button type="submit" class="btn-save">Save changes</button>
                         <a href="ProductController?action=listProduct" class="btn-cancel">Cancel</a>
-                        <a href="ProductController?action=deleteProduct&id=<%= id%>"
-                           class="btn-delete-prod"
+                        <a href="ProductController?action=deleteProduct&amp;id=<c:out value="${param.id}"/>" class="btn-delete-prod"
                            onclick="return confirm('Delete this product? This cannot be undone.')">
                             Delete product
                         </a>

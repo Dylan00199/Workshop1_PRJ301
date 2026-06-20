@@ -74,6 +74,20 @@
                 background: #f0f0f0;
             }
 
+            .btn-cancel {
+                padding: 6px 18px;
+                font-size: 14px;
+                border: 1px solid #ccc;
+                border-radius: 5px;
+                background: #fff;
+                color: #555;
+                text-decoration: none;
+                cursor: pointer;
+            }
+            .btn-cancel:hover {
+                background: #f5f5f5;
+            }
+
             /* error message */
             .error-msg {
                 color: #c0392b;
@@ -90,8 +104,8 @@
             <h1 class="page-title">New category</h1>
 
             <%-- Show error from backend if any --%>
-            <c:if test = "${not empty error-msg}">
-                <p class="error-msg"><c:out value = "${msg}"/></p>
+            <c:if test="${not empty error}">
+                <p class="error-msg"><c:out value="${error}"/></p>
             </c:if>
 
             <form action="CategoryController" method="POST" class="cat-form">
@@ -100,15 +114,16 @@
                 <label class="form-label">Category<br>name:</label>
                 <input type="text" name="categoryName"
                        placeholder="Nhóm hàng mới"
-                       value="<%= request.getParameter("categoryName") != null ? request.getParameter("categoryName") : ""%>">
+                       value="<c:out value="${param.categoryName}"/>">
 
                 <label class="form-label">Memo :</label>
                 <textarea name="memo"
-                          placeholder="Những sản phẩm dùng cho du lịch, thám hiểm..."><%= request.getParameter("memo") != null ? request.getParameter("memo") : ""%></textarea>
+                          placeholder="Những sản phẩm dùng cho du lịch, thám hiểm..."><c:out value="${param.memo}"/></textarea>
 
                 <span></span>
                 <div class="form-actions">
                     <button type="submit" class="btn-save">Save</button>
+                    <a href="CategoryController?action=listCategory" class="btn-cancel" style="margin-left:8px">Cancel</a>
                 </div>
             </form>
         </div>

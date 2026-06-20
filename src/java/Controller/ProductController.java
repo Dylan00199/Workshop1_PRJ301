@@ -4,11 +4,12 @@ import Model.Account;
 import Model.Category;
 import Model.Product;
 import Model.dao.ProductDAO;
+import Model.dao.CategoryDAO; // Thêm import này để lấy list Category
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.List;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig; // RẤT QUAN TRỌNG
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -16,51 +17,38 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 
-/**
- *
- * @author PC
- */
+@MultipartConfig(
+    fileSizeThreshold = 1024 * 1024 * 2,  // 2MB
+    maxFileSize = 1024 * 1024 * 10,       // 10MB
+    maxRequestSize = 1024 * 1024 * 50     // 50MB
+)
 @WebServlet(name = "ProductController", urlPatterns = {"/ProductController"})
 public class ProductController extends HttpServlet {
-
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try ( PrintWriter out = response.getWriter()) {
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet ProductController</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet ProductController at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        HttpSession session = request.getSession();
+        
         String action = request.getParameter("action");
         if (action == null || action.isEmpty()) {
-            action = "";
+            action = "listProduct";
         }
+        
         switch (action) {
             case "listProduct":
                 List<Product> list = ProductDAO.getInstance().listAll();
-                request.setAttribute("list", list);
+                request.setAttribute("products", list); // Đổi tên attribute cho khớp với JSTL
                 request.getRequestDispatcher("listProducts.jsp").forward(request, response);
                 break;
 
             case "deleteProduct":
                 String delId = request.getParameter("id");
-                if (delId == null || delId.isEmpty()) {
-                    return;
+                if (delId != null && !delId.isEmpty()) {
+                    Product del = ProductDAO.getInstance().getObjectById(delId);
+                    if(del != null) {
+                        ProductDAO.getInstance().deleteRec(del);
+                    }
                 }
-                Product del = ProductDAO.getInstance().getObjectById(delId);
-                ProductDAO.getInstance().deleteRec(del);
                 response.sendRedirect("ProductController?action=listProduct");
                 break;
 
@@ -69,6 +57,18 @@ public class ProductController extends HttpServlet {
                 request.setAttribute("list", listPublic);
                 request.getRequestDispatcher("index.jsp").forward(request, response);
                 break;
+
+            case "updateProduct":
+                // Chuẩn MVC: Fetch data ở Servlet rồi ném sang JSP
+                String updateId = request.getParameter("id");
+                Product p = ProductDAO.getInstance().getObjectById(updateId);
+                List<Category> cats = CategoryDAO.getInstance().listAll();
+                
+                request.setAttribute("p", p);
+                request.setAttribute("cats", cats);
+                request.getRequestDispatcher("updateProduct.jsp").forward(request, response);
+                break;
+
             default:
                 response.sendRedirect("index.jsp");
                 break;
@@ -78,11 +78,16 @@ public class ProductController extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        
+        // Hỗ trợ tiếng Việt
+        request.setCharacterEncoding("UTF-8");
+        
         HttpSession session = request.getSession();
         String action = request.getParameter("action");
         if (action == null || action.isEmpty()) {
             action = "";
         }
+        
         switch (action) {
             case "addProduct":
                 try {
@@ -104,15 +109,17 @@ public class ProductController extends HttpServlet {
                         postDate = java.sql.Date.valueOf(postDateString);
                     }
 
-                    // ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR
+                    // ĐÃ FIX LỖI UPLOAD ẢNH
                     String imageUrl = null;
                     Part filePart = request.getPart("image");
                     if (filePart != null && filePart.getSize() > 0) {
                         String originalFileName = filePart.getSubmittedFileName();
-                        String uploadDir = getServletContext().getRealPath("/uploads/");
-                        File uploadFolder = new File(uploadDir);
+                        // Fix path: Đưa hẳn vào thư mục /images/sanPham/ để frontend gọi lên được
+                        String uploadPath = getServletContext().getRealPath("/images/sanPham");
+                        File uploadFolder = new File(uploadPath);
                         if (!uploadFolder.exists()) uploadFolder.mkdirs();
-                        filePart.write(uploadDir + originalFileName);
+                        
+                        filePart.write(uploadPath + File.separator + originalFileName);
                         imageUrl = "/images/sanPham/" + originalFileName;
                     }
 
@@ -131,7 +138,8 @@ public class ProductController extends HttpServlet {
                     obj.setType(cat);
 
                     ProductDAO.getInstance().insertRec(obj);
-                    response.sendRedirect("index.jsp");
+                    // Nên redirect về trang quản lý thay vì index
+                    response.sendRedirect("ProductController?action=listProduct");
                 } catch (Exception e) {
                     e.printStackTrace();
                     request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
@@ -150,9 +158,6 @@ public class ProductController extends HttpServlet {
                     String discountStr = request.getParameter("discount");
                     Account account = (Account) session.getAttribute("login");
 
-                    String activeParam = request.getParameter("active");
-                    boolean active = (activeParam != null) ? Boolean.parseBoolean(activeParam) : false;
-
                     int categoryId = (categoryIdStr != null && !categoryIdStr.isEmpty()) ? Integer.parseInt(categoryIdStr) : 0;
                     int price = (priceStr != null && !priceStr.isEmpty()) ? Integer.parseInt(priceStr) : 0;
                     int discount = (discountStr != null && !discountStr.isEmpty()) ? Integer.parseInt(discountStr) : 0;
@@ -162,24 +167,23 @@ public class ProductController extends HttpServlet {
                         postDate = java.sql.Date.valueOf(postDateString);
                     }
 
-                    //ERRORRRRRRRRRRRRRRRRRRRRRRR
+                    // ĐÃ FIX LỖI UPLOAD ẢNH
                     String imageUrl = null;
                     Part filePart = request.getPart("image");
                     if (filePart != null && filePart.getSize() > 0) {
-                        // Có file upload mới
                         String originalFileName = filePart.getSubmittedFileName();
-                        String uploadDir = getServletContext().getRealPath("/uploads/");
-                        File uploadFolder = new File(uploadDir);
+                        // Fix path
+                        String uploadPath = getServletContext().getRealPath("/images/sanPham");
+                        File uploadFolder = new File(uploadPath);
                         if (!uploadFolder.exists()) uploadFolder.mkdirs();
-                        filePart.write(uploadDir + originalFileName);
+                        
+                        filePart.write(uploadPath + File.separator + originalFileName);
                         imageUrl = "/images/sanPham/" + originalFileName;
                     } else {
-                        // Không có file → thử lấy URL text
                         String imageUrlParam = request.getParameter("imageUrl");
                         if (imageUrlParam != null && !imageUrlParam.trim().isEmpty()) {
                             imageUrl = imageUrlParam.trim();
                         } else {
-                            // Giữ ảnh cũ từ DB
                             Product existing = ProductDAO.getInstance().getObjectById(id);
                             if (existing != null) imageUrl = existing.getProductImage();
                         }
@@ -200,11 +204,13 @@ public class ProductController extends HttpServlet {
                     obj.setType(cat);
 
                     ProductDAO.getInstance().updateRec(obj);
-                    response.sendRedirect("index.jsp");
+                    // Nên redirect về trang quản lý thay vì index
+                    response.sendRedirect("ProductController?action=listProduct");
                 } catch (Exception e) {
                     e.printStackTrace();
                     request.setAttribute("error", "Lỗi hệ thống: " + e.getMessage());
-                    request.getRequestDispatcher("updateProduct.jsp?id=" + request.getParameter("id")).forward(request, response);
+                    // Nếu lỗi, điều hướng lại về trang update kèm theo ID để load lại form
+                    response.sendRedirect("ProductController?action=updateProduct&id=" + request.getParameter("id") + "&error=System Error");
                 }
                 break;
 
@@ -216,6 +222,6 @@ public class ProductController extends HttpServlet {
 
     @Override
     public String getServletInfo() {
-        return "Short description";
+        return "Product Controller - Handled Multipart & MVC";
     }
 }

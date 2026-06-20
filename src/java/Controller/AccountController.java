@@ -42,10 +42,15 @@ public class AccountController extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         String action = request.getParameter("action");
+        String msg;
         switch (action) {
             case "displayAccount":
                 Account login = (Account) session.getAttribute("login");
-
+                if(login == null){
+                    msg = "Please Login or Regist new account!";
+                    request.setAttribute("msg", msg);
+                    request.getRequestDispatcher("login.jsp").forward(request, response);
+                }
                 String firstName = login.getFirstname();
                 String lastName = login.getLastname();
 
@@ -90,7 +95,7 @@ public class AccountController extends HttpServlet {
             case "deleteAccount":
                 Account del = AccountDAO.getInstance().getObjectById(request.getParameter("id"));
                 AccountDAO.getInstance().deleteRec(del);
-                response.sendRedirect("AccountController?action=listAccount");
+                response.sendRedirect("index.jsp");
                 break;
 
             default:
@@ -117,7 +122,7 @@ public class AccountController extends HttpServlet {
             try {
                 role = Integer.parseInt(roleParam);
             } catch (NumberFormatException e) {
-                System.out.println("Lỗi: Role trên URL không phải là số hợp lệ!");
+                e.printStackTrace();
             }
         } 
         // convert dob into date

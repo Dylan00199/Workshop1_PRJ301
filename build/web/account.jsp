@@ -1,7 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-<%@ page import="Model.Account" %> 
 
 <!DOCTYPE html>
 <html lang="en">
@@ -419,8 +418,8 @@
     <body>
 
         <%@ include file="navbar.jsp" %>
-        <c:if test="${empty login}">
-            <jsp:forward page="addAccount.jsp"/>
+        <c:if test="${empty sessionScope.login}">
+            <c:redirect url="login.jsp"/>
         </c:if>
         <div class="page-content">
             <h1 class="page-title">My account</h1>
@@ -440,10 +439,10 @@
                 <div class="sidebar-card">
                     <c:if test="${login.gender eq true}">
                         <div class="avatar-circle"><img src="./images/img_avatar1.png" alt="alt"/></div>
-                    </c:if>
-                    <c:if test="${login.gender eq false}">
+                        </c:if>
+                        <c:if test="${login.gender eq false}">
                         <div class="avatar-circle"><img src="./images/img_avatar2.png" alt="alt"/></div>
-                    </c:if>
+                        </c:if>
                     <div class="sidebar-name">${fullName}</div>
                     <div class="sidebar-username">${sessionScope.login.account}</div>
 
@@ -629,10 +628,16 @@
                                 Once you delete your account, all data will be permanently removed.<br>
                                 This action cannot be undone.
                             </div>
-                            <button class="btn-danger"
-                                    onclick="return confirm('Are you sure you want to delete your account? This cannot be undone.')">
-                                Delete account
-                            </button>
+                            <form action="MainController" method="POST">
+                                <input type="hidden" name="action" value="deleteAccount">
+
+                                <input type="hidden" name="id" value="${acc.account}"> 
+
+                                <button type="submit" class="btn-danger"
+                                        onclick="return confirm('Are you sure you want to delete your account? This cannot be undone.')">
+                                    Delete account
+                                </button>
+                            </form>
                         </div>
                     </div>
 

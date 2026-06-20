@@ -1,7 +1,8 @@
-<%@page import="Model.Product"%>
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
-<%@ page import="Model.Product" %> 
+<%@ page import="Model.Product" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -180,12 +181,7 @@
                 <a href="addProduct.jsp" class="btn-add">+ Add product</a>
             </div>
 
-
             <%-- ===== TABLE ===== --%>
-            <%
-                List<Product> products = (List<Product>) request.getAttribute("list");
-                boolean hasData = products != null && !products.isEmpty();
-            %>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -200,57 +196,78 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% if (!hasData) { %>
-                    <tr class="empty-row"><td colspan="8">No products found.</td></tr>
-                    <% } else { %>
+                    <c:choose>
+                        <%-- Kiểm tra list products có rỗng hay không --%>
+                        <c:when test="${empty products}">
+                            <tr class="empty-row">
+                                <td colspan="8">No products found.</td>
+                            </tr>
+                        </c:when>
 
-                    <%
-                        int idx = 1;
-                        for (Product p : products) {%>
-                    <tr>
-                        <td><%= idx++%></td>
-                        <td>
-                            <% if (p.getProductImage() != null && !p.getProductImage().isEmpty()) {%>
-                            <img class="product-thumb"
-                                 src="<%= request.getContextPath() + p.getProductImage()%>"
-                                 alt="<%= p.getProductName()%>"
-                                 loading="lazy"
-                                 onerror="this.style.display='none'">
-                            <% } else { %>
-                            <div class="no-img">N/A</div>
-                            <% }%>
-                        </td>
-                        <td>
-                            <div class="product-name"><%= p.getProductName()%></div>
-                            <div class="product-brief"><%= p.getBrief()%></div>
-                        </td>
-                        <td><span class="badge-cat"><%= p.getType().getCategoryName()%></span></td>
-                        <td class="price-cell">
-                            <%= String.format("%,.0f VND", p.getPrice() * (1 - p.getDiscount() / 100.0))%>
-                            <% if (p.getDiscount() > 0) {%>
-                            <span class="price-original"><%= String.format("%,d VND", p.getPrice())%></span>
-                            <% } %>
-                        </td>
-                        <td>
-                            <% if (p.getDiscount() > 0) {%>
-                            <span class="discount-badge">-<%= p.getDiscount()%>%</span>
-                            <% } else { %>—<% }%>
-                        </td>
-                        <td><%= p.getPostedDate()%></td>
-                        <% if ("admin".equalsIgnoreCase(currentRole)) {%>
-                        <td>
-                            <a href="updateProduct.jsp?id=<%= p.getProductId()%>" class="btn btn-update">Update</a>
-                            <a href="ProductController?action=deleteProduct&id=<%= p.getProductId()%>"
-                               class="btn btn-delete"
-                               onclick="return confirm('Delete product \"<%= p.getProductName()%>\"?')">Delete</a>
-                        </td>
-                        <% }%>
+                        <c:otherwise>
+                            <c:forEach var="p" items="${products}" varStatus="loop">
+                                <tr>
+                                    <td>${loop.count}</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${not empty p.productImage}">
+                                                <img class="product-thumb"
+                                                     src="${pageContext.request.contextPath}${p.productImage}"
+                                                     alt="<c:out value='${p.productName}'/>"
+                                                     loading="lazy"
+                                                     onerror="this.style.display='none'">
+                                            </c:when>
+                                            <c:otherwise>
+                                                <div class="no-img">N/A</div>
+                                            </c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>
+                                        <div class="product-name"><c:out value="${p.productName}"/></div>
+                                        <div class="product-brief"><c:out value="${p.brief}"/></div>
+                                    </td>
 
-                    </tr>
-                    <% }%>
+                                    <td><span class="badge-cat"><c:out value="${p.type.categoryName}"/></span></td>
 
+                                    <td class="price-cell">
+                                        <fmt:formatNumber value="${p.price * (1 - p.discount / 100.0)}" pattern="#,##0"/> VND
+                                        <c:if test="${p.discount > 0}">
+                                            <span class="price-original">
+                                                <fmt:formatNumber value="${p.price}" pattern="#,##0"/> VND
+                                            </span>
+                                        </c:if>
+                                    </td>
 
-                    <% }%>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${p.discount > 0}">
+                                                <span class="discount-badge">-${p.discount}%</span>
+                                            </c:when>
+                                            <c:otherwise>&#8212;</c:otherwise>
+                                        </c:choose>
+                                    </td>
+
+                                    <td>${p.postedDate}</td>
+
+                                    <%-- Always render the Action cell so row/header column counts stay aligned,
+                                         regardless of role. Buttons themselves are still admin-only. --%>
+                                    <c:choose>
+                                        <c:when test="${not empty currentRole and currentRole.toLowerCase() eq 'admin'}">
+                                            <td>
+                                                <a href="updateProduct.jsp?id=${p.productId}" class="btn btn-update">Update</a>
+                                                <a href="ProductController?action=deleteProduct&amp;id=${p.productId}"
+                                                   class="btn btn-delete"
+                                                   onclick="return confirm('Delete product &quot;<c:out value="${p.productName}"/>&quot;?')">Delete</a>
+                                            </td>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <td>&#8212;</td>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </tr>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
                 </tbody>
             </table>
         </div>

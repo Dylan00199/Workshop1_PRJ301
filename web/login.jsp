@@ -161,7 +161,7 @@
                 <p class="login-sub">Enter your account credentials to continue</p>
                 
                 <c:if test="${not empty msg}">
-                    <div class="error-box">${msg}</div>
+                    <div class="error-box"><c:out value="${msg}"/></div>
                 </c:if>
 
                 <form action="loginController" method="POST">

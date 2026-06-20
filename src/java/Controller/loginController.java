@@ -104,16 +104,17 @@ public class loginController extends HttpServlet {
                 if (session.getAttribute("LOCKOUT_COUNT") != null) {
                     lockoutCount = (int) session.getAttribute("LOCKOUT_COUNT");
                 }
-                lockoutCount++; 
+                lockoutCount++;
                 session.setAttribute("LOCKOUT_COUNT", lockoutCount);
 
-                long penaltyMinutes = (lockoutCount >= 2) ? 30*lockoutCount : 30;
+                long penaltyMinutes = (lockoutCount >= 2) ? 30 * lockoutCount : 30;
 
                 long futureLockoutTime = System.currentTimeMillis() + (penaltyMinutes * 60 * 1000);
                 session.setAttribute("LOCKOUT_TIME", futureLockoutTime);
 
-                session.setMaxInactiveInterval( (int) (penaltyMinutes + 10) * 60);
-
+                session.setMaxInactiveInterval((int) (penaltyMinutes + 10) * 60);
+                msg = "Too many failed attempts. Locked for " + penaltyMinutes + " minutes.";
+                request.setAttribute("msg", msg);
                 request.getRequestDispatcher("login.jsp").forward(request, response);
                 return;
             }

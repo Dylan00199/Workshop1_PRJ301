@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ page import="java.util.List" %>
-<%@ page import="Model.Category" %> 
+<%@ page import="Model.Category" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -194,21 +195,7 @@
                 <a href="addCategory.jsp" class="btn-add">+ Add category</a>
             </div>
 
-            <%-- ===== SEARCH ===== --%>
-            <form class="search-bar" method="GET" action="CategoryController">
-                <input type="hidden" name="action" value="listCategory">
-                <input type="text" name="keyword"
-                       placeholder="Search category name..."
-                       value="<%= request.getParameter("keyword") != null ? request.getParameter("keyword") : ""%>">
-                <button type="submit" class="btn-search">Search</button>
-                <a href="MainController?action=listCategory"><button type="button" class="btn-search">Reset</button></a>
-            </form>
-
             <%-- ===== TABLE ===== --%>
-            <%
-                List<Category> categories = (List<Category>) request.getAttribute("categoryList");
-                boolean hasData = categories != null && !categories.isEmpty();
-            %>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -219,24 +206,29 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% if (!hasData) { %>
-                    <tr class="empty-row"><td colspan="4">No categories found.</td></tr>
-                    <% } else { %>
+                    <c:choose>
+                        <c:when test="${empty categoryList}">
+                            <tr class="empty-row">
+                                <td colspan="4">No categories found.</td>
+                            </tr>
+                        </c:when>
 
-                    <%
-                        int idx = 1;
-                        for (Category cat : categories) {%>
-                    <tr>
-                        <td><%= idx++%></td>
-                        <td><strong><%= cat.getCategoryName()%></strong></td>
-                        <td class="memo-cell"><%= cat.getMemo()%></td>
-                        <td>
-                            <a href="updateCategory.jsp?id=<%= cat.getTypeId()%>" class="btn btn-update">Update</a>
-                            <a href="CategoryController?action=deleteCategory&id=<%= cat.getTypeId()%>" class="btn btn-delete">Delete</a>
-                        </td>
-                    </tr>
-                    <% } %>
-                    <% }%>
+                        <c:otherwise>
+                            <c:forEach var="cat" items="${categoryList}" varStatus="loop">
+                                <tr>
+                                    <td>${loop.count}</td>
+                                    <td><strong><c:out value="${cat.categoryName}"/></strong></td>
+                                    <td class="memo-cell"><c:out value="${cat.memo}"/></td>
+                                    <td>
+                                        <a href="updateCategory.jsp?id=${cat.typeId}" class="btn btn-update">Update</a>
+                                        <a href="CategoryController?action=deleteCategory&amp;id=${cat.typeId}"
+                                           class="btn btn-delete"
+                                           onclick="return confirm('Delete category &quot;<c:out value="${cat.categoryName}"/>&quot;?')">Delete</a>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                        </c:otherwise>
+                    </c:choose>
                 </tbody>
             </table>
 

@@ -7,6 +7,7 @@
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/account.jsp</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Model/dao/ProductDAO.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Utilities/ValidationUtils.java</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/META-INF/context.xml</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Controller/AccountController.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Utilities/PasswordUtils.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Controller/ProductController.java</file>
@@ -14,11 +15,13 @@
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/addCategory.jsp</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/navbar.jsp</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/updateAccount.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/WEB-INF/web.xml</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/listProducts.jsp</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/index.jsp</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Utilities/ConnectDB.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/login.jsp</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/listAccount.jsp</file>
+            <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/web/AccessDenied.jsp</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Model/Account.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Model/dao/AccountDAO.java</file>
             <file>file:/C:/FPT_Subject/4th%20Semester/PRJ301/Workshop1/W1_PhamNhatDuyAnh_SE205044/src/java/Controller/loginController.java</file>
